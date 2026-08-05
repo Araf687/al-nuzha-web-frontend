@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+:root {
+  --brand:       #0a4a35;
+  --brand-mid:   #0f6e56;
+  --brand-light: #1a9e75;
+  --brand-pale:  #e8f5f0;
+  --brand-dark:  #062b1f;
+  --accent:      #e8a045;
+  --accent-pale: #fef3e2;
+  --text-1:      #0f1a15;
+  --text-2:      #3d5a4e;
+  --text-3:      #7a9b8e;
+  --border:      #d4e8e0;
+  --surface:     #f5faf8;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body), system-ui, sans-serif;
+  background: #fff;
+  color: var(--text-1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display), Georgia, serif;
+  font-optical-sizing: auto;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-thumb { background: var(--brand-light); border-radius: 10px; }
+
+/* ── RTL (Arabic) overrides ─────────────────────────────────────── */
+/* Flip directional arrow icons in RTL */
+[dir="rtl"] .arrow-icon { transform: scaleX(-1); display: inline-block; }
+
+[dir="rtl"] body,
+[dir="rtl"] p,
+[dir="rtl"] span,
+[dir="rtl"] a,
+[dir="rtl"] button,
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select,
+[dir="rtl"] label {
+  font-family: var(--font-arabic), 'Plus Jakarta Sans', sans-serif;
+}
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4 {
+  font-family: var(--font-arabic), Georgia, serif;
+  letter-spacing: 0;
+}
+
+.whatsapp-float {
+  position: fixed;
+  bottom: 28px;
+  inset-inline-end: 28px;
+  z-index: 999;
+  width: 56px;
+  height: 56px;
+  background: #25D366;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(37,211,102,0.5);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+}
+.whatsapp-float:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 28px rgba(37,211,102,0.65);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeLeft {
+  from { opacity: 0; transform: translateX(-36px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeRight {
+  from { opacity: 0; transform: translateX(36px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-14px); }
+}
+@keyframes scrollBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(9px); }
+}
+@keyframes countUp { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulseRing {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  100% { transform: scale(1.6); opacity: 0; }
+}

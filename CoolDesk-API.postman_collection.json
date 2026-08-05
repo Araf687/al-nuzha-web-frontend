@@ -1,0 +1,905 @@
+{
+  "info": {
+    "name": "CoolDesk API",
+    "description": "AC & Refrigerator Service Management API — Dubai\n\nBase URL: {{baseUrl}}\nSwagger docs: {{baseUrl}}/api/docs\n\n## Setup\n1. Create a Postman Environment with:\n   - `baseUrl` = `http://localhost:3001/api/v1`\n   - `authToken` = (auto-filled after login)\n   - `customerId`, `technicianId`, `serviceRequestId`, `jobReportId`, `invoiceId`, `partId`, `challanId`, `reviewId` — auto-filled by test scripts\n\n2. Run **Customer Login** or **Technician Login** — the token is saved automatically to `authToken`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001/api/v1", "type": "string" },
+    { "key": "authToken", "value": "", "type": "string" },
+    { "key": "customerId", "value": "", "type": "string" },
+    { "key": "technicianId", "value": "", "type": "string" },
+    { "key": "serviceRequestId", "value": "", "type": "string" },
+    { "key": "jobReportId", "value": "", "type": "string" },
+    { "key": "invoiceId", "value": "", "type": "string" },
+    { "key": "partId", "value": "", "type": "string" },
+    { "key": "challanId", "value": "", "type": "string" },
+    { "key": "reviewId", "value": "", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{authToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints — register & login for customers and technicians.",
+      "item": [
+        {
+          "name": "Register Customer",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/customer/register", "host": ["{{baseUrl}}"], "path": ["auth", "customer", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ahmed Al Rashid\",\n  \"phone\": \"+971501234567\",\n  \"email\": \"ahmed@example.com\",\n  \"password\": \"securePass123\"\n}"
+            },
+            "description": "Register a new customer account. Phone must be unique. If the phone already exists as a guest (created by a service request), it upgrades the record to a registered account."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.accessToken) {",
+                  "  pm.collectionVariables.set('authToken', res.accessToken);",
+                  "  pm.collectionVariables.set('customerId', res.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login Customer",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/customer/login", "host": ["{{baseUrl}}"], "path": ["auth", "customer", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+971501234567\",\n  \"password\": \"securePass123\"\n}"
+            },
+            "description": "Customer login. Returns a JWT valid for 7 days."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.accessToken) {",
+                  "  pm.collectionVariables.set('authToken', res.accessToken);",
+                  "  pm.collectionVariables.set('customerId', res.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login Technician",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/technician/login", "host": ["{{baseUrl}}"], "path": ["auth", "technician", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+971509876543\",\n  \"password\": \"techPass456\"\n}"
+            },
+            "description": "Technician/admin login. Role in JWT payload will be `technician`, `senior_technician`, or `admin`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.accessToken) {",
+                  "  pm.collectionVariables.set('authToken', res.accessToken);",
+                  "  pm.collectionVariables.set('technicianId', res.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "description": "Customer management. All endpoints require JWT.",
+      "item": [
+        {
+          "name": "Get All Customers",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/customers", "host": ["{{baseUrl}}"], "path": ["customers"] },
+            "description": "Admin — list all customers ordered by newest first."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (Array.isArray(res) && res.length > 0) {",
+                  "  pm.collectionVariables.set('customerId', res[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/customers/me", "host": ["{{baseUrl}}"], "path": ["customers", "me"] },
+            "description": "Returns the logged-in customer's profile with their service requests and invoices."
+          }
+        },
+        {
+          "name": "Get Customer by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/customers/{{customerId}}", "host": ["{{baseUrl}}"], "path": ["customers", "{{customerId}}"] },
+            "description": "Fetch a single customer with their service requests and invoices."
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/customers/me", "host": ["{{baseUrl}}"], "path": ["customers", "me"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ahmed Al Rashid\",\n  \"email\": \"ahmed.updated@example.com\",\n  \"address\": \"Villa 12, Al Barsha 1, Dubai\",\n  \"lat\": 25.1124,\n  \"lng\": 55.1963\n}"
+            },
+            "description": "Update the logged-in customer's profile. Only provide fields you want to change."
+          }
+        },
+        {
+          "name": "Reset Customer Password (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/customers/{{customerId}}/reset-password", "host": ["{{baseUrl}}"], "path": ["customers", "{{customerId}}", "reset-password"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"newSecurePass123\"\n}"
+            },
+            "description": "Admin only — set a new password for any customer. No old password required. `newPassword` minimum 6 characters.\n\nReturns `{ message: 'Password reset successfully' }`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Technicians",
+      "description": "Staff management. All endpoints require JWT.",
+      "item": [
+        {
+          "name": "Get All Technicians",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/technicians", "host": ["{{baseUrl}}"], "path": ["technicians"] },
+            "description": "Returns all active technicians."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (Array.isArray(res) && res.length > 0) {",
+                  "  pm.collectionVariables.set('technicianId', res[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Technician",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/technicians", "host": ["{{baseUrl}}"], "path": ["technicians"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Khalid Hassan\",\n  \"phone\": \"+971509876543\",\n  \"email\": \"khalid@cooldesk.ae\",\n  \"password\": \"techPass456\",\n  \"role\": \"technician\"\n}"
+            },
+            "description": "Admin only (role: admin) — create a technician or admin account. Role can be `technician`, `senior_technician`, or `admin`. Requires a JWT from an admin login."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) pm.collectionVariables.set('technicianId', res.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Technician by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/technicians/{{technicianId}}", "host": ["{{baseUrl}}"], "path": ["technicians", "{{technicianId}}"] }
+          }
+        },
+        {
+          "name": "Update Technician",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/technicians/{{technicianId}}", "host": ["{{baseUrl}}"], "path": ["technicians", "{{technicianId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"senior_technician\",\n  \"isActive\": true\n}"
+            },
+            "description": "Admin only (role: admin) — update technician details. Only provide fields to change."
+          }
+        },
+        {
+          "name": "Reset Technician Password (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/technicians/{{technicianId}}/reset-password", "host": ["{{baseUrl}}"], "path": ["technicians", "{{technicianId}}", "reset-password"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"newSecurePass123\"\n}"
+            },
+            "description": "Admin only — set a new password for any technician/staff account. No old password required. `newPassword` minimum 6 characters.\n\nReturns `{ message: 'Password reset successfully' }`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Service Requests",
+      "description": "Core job lifecycle management.",
+      "item": [
+        {
+          "name": "Submit Service Request (Guest)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/service-requests", "host": ["{{baseUrl}}"], "path": ["service-requests"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sara Mohammed\",\n  \"phone\": \"+971551234567\",\n  \"serviceType\": \"AC Repair\",\n  \"equipmentType\": \"AC\",\n  \"equipmentBrand\": \"Samsung\",\n  \"equipmentModel\": \"AR18TYHYEWK\",\n  \"problemDescription\": \"AC is not cooling. It runs but room temperature stays the same.\",\n  \"address\": \"Apartment 5B, JBR, Dubai\",\n  \"lat\": 25.0765,\n  \"lng\": 55.1333,\n  \"preferredTime\": \"Morning, after 9am\",\n  \"source\": \"website\"\n}"
+            },
+            "description": "Public — no auth required. Creates or upserts the customer by phone number, then creates a PENDING service request."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) pm.collectionVariables.set('serviceRequestId', res.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Service Requests",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/service-requests?status=pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["service-requests"],
+              "query": [
+                { "key": "status", "value": "pending", "description": "pending | assigned | in_progress | completed | cancelled" },
+                { "key": "technicianId", "value": "", "disabled": true, "description": "Filter by assigned technician UUID" },
+                { "key": "isRecurring", "value": "", "disabled": true, "description": "true | false" }
+              ]
+            },
+            "description": "Admin — list all service requests. Supports optional filters: `status`, `technicianId`, `isRecurring`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (Array.isArray(res) && res.length > 0) {",
+                  "  pm.collectionVariables.set('serviceRequestId', res[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get My Orders (Customer)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/service-requests/my-orders", "host": ["{{baseUrl}}"], "path": ["service-requests", "my-orders"] },
+            "description": "Returns service history for the logged-in customer."
+          }
+        },
+        {
+          "name": "Get Monthly Stats",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/service-requests/stats/monthly", "host": ["{{baseUrl}}"], "path": ["service-requests", "stats", "monthly"] },
+            "description": "Returns total completed, this month's completed, recurring count, and pending count."
+          }
+        },
+        {
+          "name": "Get Service Request by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/service-requests/{{serviceRequestId}}", "host": ["{{baseUrl}}"], "path": ["service-requests", "{{serviceRequestId}}"] },
+            "description": "Returns service request with customer, assigned technician, and job report (if exists)."
+          }
+        },
+        {
+          "name": "Assign Technician",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/service-requests/{{serviceRequestId}}/assign", "host": ["{{baseUrl}}"], "path": ["service-requests", "{{serviceRequestId}}", "assign"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"technicianId\": \"{{technicianId}}\"\n}"
+            },
+            "description": "Admin/dispatcher — assign a technician. Updates status to `assigned`."
+          }
+        },
+        {
+          "name": "Update Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/service-requests/{{serviceRequestId}}/status", "host": ["{{baseUrl}}"], "path": ["service-requests", "{{serviceRequestId}}", "status"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\"\n}"
+            },
+            "description": "Update job status. Allowed values: `pending`, `assigned`, `in_progress`, `completed`, `cancelled`."
+          }
+        },
+        {
+          "name": "Create Recurring Request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/service-requests/{{serviceRequestId}}/recurring", "host": ["{{baseUrl}}"], "path": ["service-requests", "{{serviceRequestId}}", "recurring"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recurringDescription\": \"Same AC issue is happening again — compressor making loud noise just like last time.\"\n}"
+            },
+            "description": "Registered customer — report a recurring issue from a previously completed job. Copies equipment details from the parent job."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) pm.collectionVariables.set('serviceRequestId', res.id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Job Reports",
+      "description": "Technician field reports. Submitting a report auto-creates an invoice and marks the service request as completed. Parts stock is NOT auto-deducted — stock is managed by admin via purchase challans and month-end remaining qty updates. All endpoints require JWT.",
+      "item": [
+        {
+          "name": "Submit Job Report",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/job-reports/service-request/{{serviceRequestId}}", "host": ["{{baseUrl}}"], "path": ["job-reports", "service-request", "{{serviceRequestId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"faultFound\": \"Refrigerant gas leak at the evaporator coil\",\n  \"diagnosisNotes\": \"Found pin-hole leak at the bend of the evaporator coil. Brazed and re-gassed with R410A.\",\n  \"labourCharge\": 200,\n  \"arrivedAt\": \"2026-05-28T10:00:00Z\",\n  \"customerSignatureUrl\": \"https://storage.cooldesk.ae/sigs/abc123.png\",\n  \"parts\": [\n    {\n      \"partId\": \"{{partId}}\",\n      \"quantity\": 1,\n      \"unitPrice\": 85.00\n    },\n    {\n      \"customPartName\": \"Copper elbow fitting 1/4 inch\",\n      \"quantity\": 2,\n      \"unitPrice\": 12.50\n    }\n  ],\n  \"services\": [\n    {\n      \"serviceName\": \"Gas recharge R410A\",\n      \"labourCost\": 120,\n      \"notes\": \"1kg R410A refrigerant topped up\"\n    }\n  ],\n  \"expenses\": [\n    {\n      \"description\": \"Parking fee at JBR\",\n      \"amount\": 15\n    }\n  ]\n}"
+            },
+            "description": "Technician submits a completed job report from the field.\n\nSide-effects (all automatic):\n- Custom parts (no `partId`) are added to the catalogue with `needsReview: true`\n- VAT (5%) is calculated on `labourCharge + partsTotal + expensesTotal`\n- An Invoice is auto-generated\n- The parent ServiceRequest is marked `completed`\n\nNote: Parts stock is NOT auto-deducted. Stock is managed by admin only."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.report && res.report.id) pm.collectionVariables.set('jobReportId', res.report.id);",
+                  "if (res.invoice && res.invoice.id) pm.collectionVariables.set('invoiceId', res.invoice.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Submit Instant Job",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/job-reports/instant", "host": ["{{baseUrl}}"], "path": ["job-reports", "instant"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sara Mohammed\",\n  \"phone\": \"+971551234567\",\n  \"serviceType\": \"AC Repair\",\n  \"problemDescription\": \"Technician received a direct call and the AC stopped blowing cold air.\",\n  \"address\": \"Apartment 5B, JBR, Dubai\",\n  \"equipmentType\": \"AC\",\n  \"equipmentBrand\": \"Samsung\",\n  \"equipmentModel\": \"AR18TYHYEWK\",\n  \"preferredTime\": \"Immediate visit\",\n  \"source\": \"phone\",\n  \"faultFound\": \"Indoor fan motor seized\",\n  \"diagnosisNotes\": \"Technician created the job from the field and completed the repair in one visit.\",\n  \"labourCharge\": 180,\n  \"arrivedAt\": \"2026-05-30T09:00:00Z\",\n  \"customerSignatureUrl\": \"https://storage.cooldesk.ae/sigs/instant-job-123.png\",\n  \"parts\": [\n    {\n      \"partId\": \"{{partId}}\",\n      \"quantity\": 1,\n      \"unitPrice\": 85.00\n    }\n  ],\n  \"services\": [\n    {\n      \"serviceName\": \"Emergency visit\",\n      \"labourCost\": 90,\n      \"notes\": \"Customer called technician directly\"\n    },\n    {\n      \"serviceName\": \"Fan motor replacement\",\n      \"labourCost\": 90,\n      \"notes\": \"Tested airflow after replacement\"\n    }\n  ],\n  \"expenses\": [\n    {\n      \"description\": \"Parking fee at JBR\",\n      \"amount\": 15\n    }\n  ]\n}"
+            },
+            "description": "Technician creates a service request and submits the completed job report in one step.\n\nSide-effects (all automatic):\n- Customer is matched or created by phone number\n- A new ServiceRequest is created from the same payload\n- The logged-in technician is auto-assigned to that request\n- VAT (5%) is calculated on `labourCharge + partsTotal + expensesTotal`\n- An Invoice is auto-generated\n- The new ServiceRequest is marked `completed`\n\nNote: Parts stock is NOT auto-deducted. Stock is managed by admin only."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.serviceRequest && res.serviceRequest.id) pm.collectionVariables.set('serviceRequestId', res.serviceRequest.id);",
+                  "if (res.report && res.report.id) pm.collectionVariables.set('jobReportId', res.report.id);",
+                  "if (res.invoice && res.invoice.id) pm.collectionVariables.set('invoiceId', res.invoice.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get My Jobs (Technician)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/job-reports/my-jobs", "host": ["{{baseUrl}}"], "path": ["job-reports", "my-jobs"] },
+            "description": "Returns all job reports submitted by the logged-in technician, newest first."
+          }
+        },
+        {
+          "name": "Get Staff Performance",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/job-reports/staff-performance", "host": ["{{baseUrl}}"], "path": ["job-reports", "staff-performance"] },
+            "description": "Admin — returns per-technician stats: jobs completed, total revenue generated, average job duration in hours."
+          }
+        },
+        {
+          "name": "Get Job Report by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/job-reports/{{jobReportId}}", "host": ["{{baseUrl}}"], "path": ["job-reports", "{{jobReportId}}"] },
+            "description": "Returns full job report including parts, services, expenses, and linked invoice."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Parts",
+      "description": "Parts catalogue & inventory management.\n\nStock lifecycle:\n1. Admin creates a purchase challan (POST /parts/challans) → stock increments per item bought\n2. Workers use parts on jobs — stock is NOT auto-deducted by job submission\n3. End of month: admin physically counts remaining stock → PATCH /parts/:id/set-remaining → stockQty set to actual count\n\nAll endpoints require JWT.",
+      "item": [
+        {
+          "name": "Get All Parts",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/parts", "host": ["{{baseUrl}}"], "path": ["parts"] },
+            "description": "Returns all parts sorted alphabetically by name."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (Array.isArray(res) && res.length > 0) {",
+                  "  pm.collectionVariables.set('partId', res[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Low-Stock Parts",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/parts/low-stock", "host": ["{{baseUrl}}"], "path": ["parts", "low-stock"] },
+            "description": "Returns parts where `stockQty <= minStockLevel`. Use for procurement alerts."
+          }
+        },
+        {
+          "name": "Get Parts Pending Review",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/parts/pending-review", "host": ["{{baseUrl}}"], "path": ["parts", "pending-review"] },
+            "description": "Returns custom parts added by technicians in the field that need admin review/approval."
+          }
+        },
+        {
+          "name": "List All Challans",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/parts/challans", "host": ["{{baseUrl}}"], "path": ["parts", "challans"] },
+            "description": "Admin — list all purchase challans ordered newest first. Each challan includes its line items with part details."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (Array.isArray(res) && res.length > 0) {",
+                  "  pm.collectionVariables.set('challanId', res[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Challan by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/parts/challans/{{challanId}}", "host": ["{{baseUrl}}"], "path": ["parts", "challans", "{{challanId}}"] },
+            "description": "Returns a single purchase challan with all its line items."
+          }
+        },
+        {
+          "name": "Bulk Create Challans (CSV upload)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/parts/challans/bulk", "host": ["{{baseUrl}}"], "path": ["parts", "challans", "bulk"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challans\": [\n    {\n      \"challanNumber\": \"CH-2026-06-001\",\n      \"purchaseDate\": \"2026-06-10\",\n      \"supplierName\": \"Dubai HVAC Supplies LLC\",\n      \"items\": [\n        { \"partSku\": \"CAP-45\",    \"quantity\": 20, \"unitPrice\": 35.00 },\n        { \"partSku\": \"MOTOR-IND\", \"quantity\": 10, \"unitPrice\": 120.00 }\n      ]\n    },\n    {\n      \"challanNumber\": \"CH-2026-06-002\",\n      \"purchaseDate\": \"2026-06-12\",\n      \"supplierName\": \"Ahmed Parts Store\",\n      \"items\": [\n        { \"partSku\": \"THERM-DIG\", \"quantity\": 5, \"unitPrice\": 65.00 }\n      ]\n    }\n  ]\n}"
+            },
+            "description": "Admin — create multiple challans in one request. Parts are looked up by **SKU** (not UUID), so the CSV doesn't need internal IDs.\n\nEach challan in `challans[]`:\n- `challanNumber` (string, unique)\n- `purchaseDate` (YYYY-MM-DD)\n- `supplierName` (optional)\n- `items[]` — each item: `partSku`, `quantity`, `unitPrice`\n\nReturns `{ created: PartChallan[], errors: [{ challanNumber, error }] }`. Challans that fail (unknown SKU, duplicate challan number, etc.) are reported per-challan; successful ones still save and update stock.\n\nThe frontend CSV upload groups rows by `challanNumber` then calls this endpoint."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.created && res.created.length > 0) {",
+                  "  pm.collectionVariables.set('challanId', res.created[0].id);",
+                  "}",
+                  "console.log('Created:', res.created?.length, '| Errors:', res.errors?.length);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Purchase Challan",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/parts/challans", "host": ["{{baseUrl}}"], "path": ["parts", "challans"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challanNumber\": \"CH-2026-06-001\",\n  \"purchaseDate\": \"2026-06-10\",\n  \"supplierName\": \"Dubai HVAC Supplies LLC\",\n  \"items\": [\n    {\n      \"partId\": \"{{partId}}\",\n      \"quantity\": 20,\n      \"unitPrice\": 35.00\n    }\n  ]\n}"
+            },
+            "description": "Admin — record a purchase challan. Each item in `items` increments the matching part's `stockQty` by the specified `quantity`.\n\nBody fields:\n- `challanNumber` (string, unique) — e.g. CH-2026-06-001\n- `purchaseDate` (YYYY-MM-DD)\n- `supplierName` (optional string)\n- `items` (array, min 1):\n  - `partId` (UUID of the part in catalogue)\n  - `quantity` (int, amount purchased)\n  - `unitPrice` (decimal, price paid per unit)\n\nSide-effect: each part's `stockQty` is incremented immediately."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) pm.collectionVariables.set('challanId', res.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Part by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/parts/{{partId}}", "host": ["{{baseUrl}}"], "path": ["parts", "{{partId}}"] }
+          }
+        },
+        {
+          "name": "Bulk Create Parts (CSV upload)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/parts/bulk", "host": ["{{baseUrl}}"], "path": ["parts", "bulk"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parts\": [\n    { \"name\": \"Capacitor 45MFD\",    \"sku\": \"CAP-45\",      \"unitPrice\": 35.00, \"minStockLevel\": 5 },\n    { \"name\": \"Indoor Fan Motor\",   \"sku\": \"MOTOR-IND\",   \"unitPrice\": 120.00, \"minStockLevel\": 3 },\n    { \"name\": \"Thermostat Digital\", \"sku\": \"THERM-DIG-01\", \"unitPrice\": 65.00, \"minStockLevel\": 4 }\n  ]\n}"
+            },
+            "description": "Admin — create multiple parts in one request. Returns `{ created: Part[], errors: { row, name, error }[] }`. Rows that fail (e.g. duplicate SKU) are reported individually; successful rows are still saved.\n\nThe frontend CSV upload feature calls this endpoint after parsing the uploaded file."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.created && res.created.length > 0) {",
+                  "  pm.collectionVariables.set('partId', res.created[0].id);",
+                  "}",
+                  "console.log('Created:', res.created?.length, '| Errors:', res.errors?.length);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Part",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/parts", "host": ["{{baseUrl}}"], "path": ["parts"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Capacitor 45/5 MFD Dual Run\",\n  \"sku\": \"CAP-4505-DUAL\",\n  \"unitPrice\": 35.00,\n  \"stockQty\": 0,\n  \"minStockLevel\": 5\n}"
+            },
+            "description": "Admin — add a new part to the catalogue. Set initial `stockQty` to 0; use a purchase challan to add stock."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) pm.collectionVariables.set('partId', res.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Part",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/parts/{{partId}}", "host": ["{{baseUrl}}"], "path": ["parts", "{{partId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unitPrice\": 38.50,\n  \"minStockLevel\": 8\n}"
+            },
+            "description": "Update part details (name, sku, unitPrice, minStockLevel). Only provide fields to change. To update stock use /set-remaining or create a challan."
+          }
+        },
+        {
+          "name": "Approve Custom Part",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/parts/{{partId}}/approve", "host": ["{{baseUrl}}"], "path": ["parts", "{{partId}}", "approve"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"COPPER-ELBOW-025\",\n  \"unitPrice\": 12.50,\n  \"minStockLevel\": 10\n}"
+            },
+            "description": "Admin — approve a custom part added by a technician. Sets `needsReview: false` and allows updating the official SKU and pricing."
+          }
+        },
+        {
+          "name": "Set Remaining Qty (Month-End)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/parts/{{partId}}/set-remaining", "host": ["{{baseUrl}}"], "path": ["parts", "{{partId}}", "set-remaining"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qty\": 2\n}"
+            },
+            "description": "Admin — end-of-month physical stock reconciliation. Sets `stockQty` to the exact remaining quantity counted in the storeroom.\n\nExample: 20 taps were purchased (added via challan), 18 were used by workers during the month, 2 remain. Admin enters `qty: 2` → `stockQty` is set to `2`.\n\nThis replaces any calculated value with the ground-truth physical count."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invoices",
+      "description": "Billing & payment tracking. Invoices are auto-generated when a job report is submitted. All endpoints require JWT.",
+      "item": [
+        {
+          "name": "Get All Invoices",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/invoices",
+              "host": ["{{baseUrl}}"],
+              "path": ["invoices"],
+              "query": [
+                { "key": "status", "value": "unpaid", "disabled": true, "description": "unpaid | paid | partial" }
+              ]
+            },
+            "description": "Admin — list all invoices, newest first. Optionally filter by `status`: `unpaid`, `paid`, or `partial`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (Array.isArray(res) && res.length > 0) {",
+                  "  pm.collectionVariables.set('invoiceId', res[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get My Invoices (Customer)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/invoices/my-invoices", "host": ["{{baseUrl}}"], "path": ["invoices", "my-invoices"] },
+            "description": "Returns invoices for the logged-in customer."
+          }
+        },
+        {
+          "name": "Get Revenue Summary",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/invoices/revenue-summary", "host": ["{{baseUrl}}"], "path": ["invoices", "revenue-summary"] },
+            "description": "Admin dashboard — monthly revenue for the last 6 months. Returns total billed, amount collected, and invoice count per month."
+          }
+        },
+        {
+          "name": "Get Invoice by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/invoices/{{invoiceId}}", "host": ["{{baseUrl}}"], "path": ["invoices", "{{invoiceId}}"] },
+            "description": "Returns invoice with customer, job report, parts, services, and expenses."
+          }
+        },
+        {
+          "name": "Mark Invoice as Paid",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/invoices/{{invoiceId}}/mark-paid", "host": ["{{baseUrl}}"], "path": ["invoices", "{{invoiceId}}", "mark-paid"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"cash\"\n}"
+            },
+            "description": "Sets payment status to `paid`, records the method and `paidAt` timestamp. Payment method: `cash`, `card`, or `bank_transfer`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services Catalogue",
+      "description": "Services offered by CoolDesk. Public endpoints for the website; admin endpoints for management.",
+      "item": [
+        {
+          "name": "Get Active Services (Public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/services-catalogue", "host": ["{{baseUrl}}"], "path": ["services-catalogue"] },
+            "description": "Public — returns all active services ordered by `displayOrder`. Shown on the website homepage."
+          }
+        },
+        {
+          "name": "Get All Services (Admin)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/services-catalogue/admin", "host": ["{{baseUrl}}"], "path": ["services-catalogue", "admin"] },
+            "description": "Admin — returns all services including inactive ones."
+          }
+        },
+        {
+          "name": "Create Service",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/services-catalogue", "host": ["{{baseUrl}}"], "path": ["services-catalogue"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"AC Deep Cleaning\",\n  \"description\": \"Full disassembly, anti-bacterial foam wash, coil cleaning, and reassembly.\",\n  \"basePrice\": 299.00,\n  \"priceLabel\": \"From AED 299\",\n  \"isActive\": true,\n  \"displayOrder\": 3\n}"
+            },
+            "description": "Admin — add a new service to the catalogue."
+          }
+        },
+        {
+          "name": "Update Service",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/services-catalogue/:id", "host": ["{{baseUrl}}"], "path": ["services-catalogue", ":id"], "variable": [{ "key": "id", "value": "" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"basePrice\": 349.00,\n  \"priceLabel\": \"From AED 349\",\n  \"isActive\": true\n}"
+            },
+            "description": "Admin — update service details or toggle visibility with `isActive`."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "description": "Customer reviews with admin approval workflow.",
+      "item": [
+        {
+          "name": "Get Approved Reviews (Public)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/reviews", "host": ["{{baseUrl}}"], "path": ["reviews"] },
+            "description": "Public — returns all approved reviews, newest first. Shown on the homepage."
+          }
+        },
+        {
+          "name": "Get All Reviews (Admin)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/reviews/admin", "host": ["{{baseUrl}}"], "path": ["reviews", "admin"] },
+            "description": "Admin — returns all reviews including pending ones awaiting approval."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "const pending = Array.isArray(res) ? res.find(r => !r.isApproved) : null;",
+                  "if (pending) pm.collectionVariables.set('reviewId', pending.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Submit Review (Customer)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/reviews", "host": ["{{baseUrl}}"], "path": ["reviews"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stars\": 5,\n  \"comment\": \"Excellent service! Khalid arrived on time and fixed my AC within an hour. Very professional and clean work.\"\n}"
+            },
+            "description": "Registered customer — submit a review. Newly created reviews have `isApproved: false` and won't appear publicly until an admin approves them."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) pm.collectionVariables.set('reviewId', res.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve Review",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/reviews/{{reviewId}}/approve", "host": ["{{baseUrl}}"], "path": ["reviews", "{{reviewId}}", "approve"] },
+            "description": "Admin — approve a review so it appears publicly. No request body needed."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "description": "Notification log. Currently a stub — WhatsApp/SMS API integration placeholder.",
+      "item": [
+        {
+          "name": "Get Recent Notifications",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/notifications", "host": ["{{baseUrl}}"], "path": ["notifications"] },
+            "description": "Admin — returns the 100 most recent notification log entries (WhatsApp, SMS, email). Ordered newest first."
+          }
+        }
+      ]
+    }
+  ]
+}
