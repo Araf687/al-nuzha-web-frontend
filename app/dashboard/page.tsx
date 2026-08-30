@@ -11,10 +11,10 @@ import { useLang } from "@/lib/i18n";
 type Status = "completed"|"inprogress"|"pending"|"recurring";
 
 const orders = [
-  { id:"JOB-2051", date:"28 Apr 2026", service:"AC repair",           equipment:"Gree 2 ton",      tech:"Rajan Kumar",  status:"inprogress" as Status, amount:"TBD",      address:"Jumeirah 1, Dubai" },
-  { id:"JOB-2047", date:"15 Apr 2026", service:"AC gas refill",       equipment:"Samsung 1.5 ton", tech:"Rajan Kumar",  status:"completed"  as Status, amount:"AED 210",  address:"Jumeirah 1, Dubai" },
-  { id:"JOB-1983", date:"10 Mar 2026", service:"Refrigerator repair", equipment:"LG 500L",          tech:"Sami Hassan",  status:"completed"  as Status, amount:"AED 380",  address:"Jumeirah 1, Dubai" },
-  { id:"JOB-1901", date:"20 Jan 2026", service:"AC deep cleaning",    equipment:"Samsung 1.5 ton", tech:"Rajan Kumar",  status:"completed"  as Status, amount:"AED 130",  address:"Jumeirah 1, Dubai" },
+  { id:"JOB-2051", date:"28 Apr 2026", service:"AC repair",           equipment:"Gree 2 ton",      tech:"Rajan Kumar",  status:"inprogress" as Status, amount:"TBD",      address:"Al Zahiyah, Abu Dhabi" },
+  { id:"JOB-2047", date:"15 Apr 2026", service:"AC gas refill",       equipment:"Samsung 1.5 ton", tech:"Rajan Kumar",  status:"completed"  as Status, amount:"AED 210",  address:"Al Zahiyah, Abu Dhabi" },
+  { id:"JOB-1983", date:"10 Mar 2026", service:"Refrigerator repair", equipment:"LG 500L",          tech:"Sami Hassan",  status:"completed"  as Status, amount:"AED 380",  address:"Al Zahiyah, Abu Dhabi" },
+  { id:"JOB-1901", date:"20 Jan 2026", service:"AC deep cleaning",    equipment:"Samsung 1.5 ton", tech:"Rajan Kumar",  status:"completed"  as Status, amount:"AED 130",  address:"Al Zahiyah, Abu Dhabi" },
 ];
 
 export default function DashboardPage() {

@@ -134,7 +134,7 @@ export default function ServicesPage() {
       {/* Hero */}
       <section className="svc-hero" style={{ position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-          <Image src="https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=1400&q=85&auto=format&fit=crop" alt="AC service professional Dubai" fill style={{ objectFit: "cover" }} />
+          <Image src="https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=1400&q=85&auto=format&fit=crop" alt="AC service professional Abu Dhabi" fill style={{ objectFit: "cover" }} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,rgba(6,43,31,0.94) 0%,rgba(10,74,53,0.78) 60%,rgba(15,110,86,0.50) 100%)" }} />
         </div>
         <div className="svc-hero-inner" style={{ position: "relative", zIndex: 1, maxWidth: 700, margin: "0 auto", textAlign: "center" }}>
@@ -157,7 +157,6 @@ export default function ServicesPage() {
           {loading && (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, color: "#7a9b8e", fontSize: 15, padding: "60px 0" }}>
               <Loader2 size={18} style={{ animation: "spin 1s linear infinite" }} /> {c.loadingServices}
-              <style>{`@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}`}</style>
             </div>
           )}
           {error && !loading && (

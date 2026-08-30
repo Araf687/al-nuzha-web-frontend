@@ -573,7 +573,7 @@ export default function AdminJobsPage() {
                 {/* Address */}
                 <div>
                   <div className="field-label">Address *</div>
-                  <input className="field-input" placeholder="Villa 12, Jumeirah 1, Dubai" value={form.address} onChange={ff("address")} required />
+                  <input className="field-input" placeholder="Villa 12, Al Khalidiyah, Abu Dhabi" value={form.address} onChange={ff("address")} required />
                 </div>
 
                 {/* Equipment */}

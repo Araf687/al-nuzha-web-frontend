@@ -67,8 +67,8 @@ const CSS = `
 
 const CSV_TEMPLATE =
   "challanNumber,purchaseDate,supplierName,partSku,quantity,unitPrice\n" +
-  "CH-2026-06-001,2026-06-10,Dubai HVAC Supplies LLC,CAP-45,20,35.00\n" +
-  "CH-2026-06-001,2026-06-10,Dubai HVAC Supplies LLC,MOTOR-IND,10,120.00\n" +
+  "CH-2026-06-001,2026-06-10,Abu Dhabi HVAC Supplies LLC,CAP-45,20,35.00\n" +
+  "CH-2026-06-001,2026-06-10,Abu Dhabi HVAC Supplies LLC,MOTOR-IND,10,120.00\n" +
   "CH-2026-06-002,2026-06-12,Ahmed Parts Store,THERM-DIG,5,65.00";
 
 function parseCSV(text: string): { groups: ChallanGroup[]; error: string } {

@@ -302,7 +302,7 @@ export default function NewChallanPage() {
               </div>
               <div>
                 <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#3d5a4e", marginBottom: 5 }}>Supplier Name</label>
-                <input type="text" placeholder="e.g. Dubai HVAC Supplies LLC" value={supplierName} onChange={e => setSupplierName(e.target.value)} style={inp} />
+                <input type="text" placeholder="e.g. Abu Dhabi HVAC Supplies LLC" value={supplierName} onChange={e => setSupplierName(e.target.value)} style={inp} />
               </div>
             </div>
 

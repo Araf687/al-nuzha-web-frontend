@@ -305,7 +305,6 @@ export default function TechnicianMap({ techId }: { techId: string }) {
               {geocoding && (
                 <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#7a9b8e" }}>
                   <Loader2 size={11} style={{ animation: "spin 1s linear infinite" }} /> resolving addresses
-                  <style>{`@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}`}</style>
                 </span>
               )}
             </div>

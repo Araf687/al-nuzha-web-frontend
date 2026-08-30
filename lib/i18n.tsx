@@ -1,7 +1,9 @@
 "use client";
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 
-export type Lang = "en" | "ar";
+import { LANG_COOKIE, type Lang } from "./lang";
+export { LANG_COOKIE };
+export type { Lang };
 
 // ── English ──────────────────────────────────────────────────────────
 const en = {
@@ -15,17 +17,17 @@ const en = {
     adminPanel: "Admin Panel",
   },
   home: {
-    heroBadge:       "DUBAI'S PREMIER ELECTRONICS REPAIR",
+    heroBadge:       "ABU DHABI'S PREMIER ELECTRONICS REPAIR",
     heroTitleMain:   "Elite Cooling & Repair",
-    heroTitleAccent: "Since 1998",
-    heroBody: "At Al-Nuzha Electronics, we provide same-day AC and refrigerator restoration across Dubai. Certified technicians, factory-grade parts, and transparent gold-standard pricing.",
+    heroTitleAccent: "Since 1991",
+    heroBody: "At Al Nuzha Electrical Repairs, we provide same-day AC and refrigerator restoration across Abu Dhabi. Certified technicians, factory-grade parts, and transparent gold-standard pricing.",
     scheduleService: "Schedule Service",
     ourCapabilities: "Our Capabilities",
     stats: [
       { val: "25+ Yrs",  label: "In Business" },
       { val: "4.9★",     label: "Average Rating" },
       { val: "90 min",   label: "Emergency Dispatch" },
-      { val: "Licensed", label: "Dubai Approved" },
+      { val: "Licensed", label: "Abu Dhabi Approved" },
     ],
     sectionServices: "Precision Engineering Services",
     services: [
@@ -36,8 +38,8 @@ const en = {
       { name: "Commercial Chillers", price: "Custom Quote",           cta: "Request Quote"  },
       { name: "Gas Refilling",       price: "Starting from AED 179", cta: "Secure Booking" },
     ],
-    aboutLabel:     "The Al-Nuzha Standard",
-    aboutTitle:     "Dubai's Gold-Standard Electronics Experts",
+    aboutLabel:     "The Al Nuzha Standard",
+    aboutTitle:     "Abu Dhabi's Gold-Standard Electronics Experts",
     emergencyLine1: "Emergency",
     emergencyLine2: "Service Ready",
     features: [
@@ -48,7 +50,7 @@ const en = {
       { title: "90-Min Response",       desc: "Fastest response times in the Emirate." },
       { title: "3-Month Warranty",      desc: "Every repair is backed by our guarantee." },
     ],
-    howItWorksTitle: "The Al-Nuzha Experience",
+    howItWorksTitle: "The Al Nuzha Experience",
     steps: [
       { title: "Book",    desc: "Schedule your preferred slot online in seconds." },
       { title: "Confirm", desc: "Our concierge confirms details and technician dispatch." },
@@ -57,18 +59,18 @@ const en = {
     ],
     reviewsTitle:   "Testimonials of Excellence",
     ctaTitlePart1:  "Ready to Experience",
-    ctaTitleAccent: "Al-Nuzha",
+    ctaTitleAccent: "Al Nuzha",
     ctaTitlePart2:  "Quality?",
     ctaBook:  "Book Expert Service",
-    ctaPhone: "+971 4 123 4567",
-    footerDesc:            "Premium electronics repair services for Dubai's most discerning residents and commercial properties.",
+    ctaPhone: "00971566636469",
+    footerDesc:            "Premium electronics repair services for Abu Dhabi's most discerning residents and commercial properties.",
     footerTechTitle:       "Technical Services",
     footerTechLinks:       ["Precision AC Repair", "Fridge Restoration", "Scheduled Maintenance", "Commercial HVAC"],
     footerCompanyTitle:    "The Company",
     footerCompanyLinks:    ["Our Legacy", "Career Opportunities", "Expert Blog", "Contact Concierge"],
     footerComplianceTitle: "Compliance",
     footerComplianceLinks: ["Privacy & Data", "Terms of Service"],
-    footerCopy:        "© 2024 Al-Nuzha Electronics Dubai. All rights reserved.",
+    footerCopy:        "© 2024 Al Nuzha Electrical Repairs Abu Dhabi. All rights reserved.",
     footerEstablished: "ESTABLISHED 1998",
   },
   customer: {
@@ -83,7 +85,7 @@ const en = {
     includesLabel:   "Every Service Includes",
     includesTitle:   "What You Always Get",
     includesItems:   [
-      "Free call-out within Dubai",
+      "Free call-out within Abu Dhabi",
       "Genuine OEM spare parts",
       "5% VAT invoice issued",
       "WhatsApp job updates",
@@ -94,7 +96,7 @@ const en = {
     ctaTitle:    "Not Sure What You Need?",
     ctaBody:     "Describe your problem and our team will advise you — free consultation, no obligation.",
     ctaBtn:      "Request Free Consultation",
-    footerCopy:  "© 2026 Al-Nuzha Technician · AC & Refrigerator Services Dubai",
+    footerCopy:  "© 2026 Al Nuzha Electrical Repairs · AC & Refrigerator Services Abu Dhabi",
   },
   request: {
     pageLabel:    "BOOK A SERVICE",
@@ -108,7 +110,7 @@ const en = {
     labelPhone:    "Phone number",
     phPhone:       "+971 50 000 0000",
     labelAddress:  "Address",
-    phAddress:     "Building, street, area, Dubai",
+    phAddress:     "Building, street, area, Abu Dhabi",
     btnLocation:   "My location",
     btnLocating:   "Getting…",
     btnContinue:   "Continue",
@@ -134,9 +136,9 @@ const en = {
     rowPreferred:         "Preferred time",
     rowBrandFallback:     "Not specified",
     rowPreferredFallback: "Flexible",
-    successTitle: "Request Submitted!",
+    successTitle: "Service Request Submitted Successfully",
     successRef:   "Reference",
-    successBody:  "We'll call you within 30 minutes to confirm. A WhatsApp confirmation will also be sent shortly.",
+    successBody:  "Your service request has been submitted successfully. We'll reach you soon on WhatsApp or by phone to confirm the details.",
     btnTrack: "Track My Order",
     btnHome:  "Back to Home",
   },
@@ -181,17 +183,17 @@ const ar: typeof en = {
     adminPanel: "لوحة الإدارة",
   },
   home: {
-    heroBadge:       "أفضل خدمات الإلكترونيات في دبي",
+    heroBadge:       "أفضل خدمات الإلكترونيات في أبوظبي",
     heroTitleMain:   "خدمات التبريد والإصلاح المتميزة",
-    heroTitleAccent: "منذ عام 1998",
-    heroBody: "في النزهة للإلكترونيات، نقدم خدمات صيانة المكيفات والثلاجات في نفس اليوم عبر دبي. فنيون معتمدون، قطع غيار أصلية، وأسعار شفافة.",
+    heroTitleAccent: "منذ عام 1991",
+    heroBody: "في النزهة للإلكترونيات، نقدم خدمات صيانة المكيفات والثلاجات في نفس اليوم عبر أبوظبي. فنيون معتمدون، قطع غيار أصلية، وأسعار شفافة.",
     scheduleService: "احجز خدمة",
     ourCapabilities: "قدراتنا",
     stats: [
       { val: "+25 سنة",  label: "من الخبرة" },
       { val: "4.9★",     label: "متوسط التقييم" },
       { val: "90 دقيقة", label: "وقت الاستجابة" },
-      { val: "مرخص",     label: "معتمد دبي" },
+      { val: "مرخص",     label: "معتمد أبوظبي" },
     ],
     sectionServices: "خدمات هندسية متخصصة",
     services: [
@@ -203,7 +205,7 @@ const ar: typeof en = {
       { name: "إعادة شحن الغاز",   price: "ابتداءً من 179 درهم",  cta: "احجز الآن"    },
     ],
     aboutLabel:     "معيار النزهة",
-    aboutTitle:     "خبراء الإلكترونيات الذهبيون في دبي",
+    aboutTitle:     "خبراء الإلكترونيات الذهبيون في أبوظبي",
     emergencyLine1: "طوارئ",
     emergencyLine2: "جاهز للخدمة",
     features: [
@@ -226,15 +228,15 @@ const ar: typeof en = {
     ctaTitleAccent: "النزهة؟",
     ctaTitlePart2:  "",
     ctaBook:  "احجز خدمة متخصصة",
-    ctaPhone: "+971 4 123 4567",
-    footerDesc:            "خدمات إصلاح إلكترونيات متميزة لسكان دبي والعقارات التجارية.",
+    ctaPhone: "00971566636469",
+    footerDesc:            "خدمات إصلاح إلكترونيات متميزة لسكان أبوظبي والعقارات التجارية.",
     footerTechTitle:       "الخدمات التقنية",
     footerTechLinks:       ["إصلاح دقيق للمكيف", "استعادة الثلاجة", "الصيانة الدورية", "HVAC تجاري"],
     footerCompanyTitle:    "الشركة",
     footerCompanyLinks:    ["تاريخنا", "فرص العمل", "المدونة", "تواصل معنا"],
     footerComplianceTitle: "الامتثال",
     footerComplianceLinks: ["الخصوصية والبيانات", "شروط الخدمة"],
-    footerCopy:        "© 2024 النزهة للإلكترونيات دبي. جميع الحقوق محفوظة.",
+    footerCopy:        "© 2024 النزهة للإلكترونيات أبوظبي. جميع الحقوق محفوظة.",
     footerEstablished: "تأسست عام 1998",
   },
   customer: {
@@ -249,7 +251,7 @@ const ar: typeof en = {
     includesLabel:   "كل خدمة تشمل",
     includesTitle:   "ما تحصل عليه دائماً",
     includesItems:   [
-      "زيارة مجانية داخل دبي",
+      "زيارة مجانية داخل أبوظبي",
       "قطع غيار OEM أصلية",
       "فاتورة بضريبة القيمة المضافة 5٪",
       "تحديثات الوظيفة عبر واتساب",
@@ -260,7 +262,7 @@ const ar: typeof en = {
     ctaTitle:    "لست متأكداً مما تحتاجه؟",
     ctaBody:     "صف مشكلتك وسيقدم فريقنا المشورة — استشارة مجانية بدون التزام.",
     ctaBtn:      "طلب استشارة مجانية",
-    footerCopy:  "© 2026 النزهة للتقنية · خدمات المكيفات والثلاجات دبي",
+    footerCopy:  "© 2026 النزهة للتقنية · خدمات المكيفات والثلاجات أبوظبي",
   },
   request: {
     pageLabel:    "احجز خدمة",
@@ -274,7 +276,7 @@ const ar: typeof en = {
     labelPhone:    "رقم الهاتف",
     phPhone:       "+971 50 000 0000",
     labelAddress:  "العنوان",
-    phAddress:     "المبنى، الشارع، المنطقة، دبي",
+    phAddress:     "المبنى، الشارع، المنطقة، أبوظبي",
     btnLocation:   "موقعي",
     btnLocating:   "جارٍ التحديد...",
     btnContinue:   "متابعة",
@@ -300,9 +302,9 @@ const ar: typeof en = {
     rowPreferred:         "الوقت المفضل",
     rowBrandFallback:     "غير محدد",
     rowPreferredFallback: "مرن",
-    successTitle: "تم تقديم الطلب!",
+    successTitle: "تم إرسال طلب الخدمة بنجاح",
     successRef:   "المرجع",
-    successBody:  "سنتصل بك خلال 30 دقيقة للتأكيد. سيُرسل تأكيد واتساب قريباً.",
+    successBody:  "تم إرسال طلب الخدمة بنجاح. سنتواصل معك قريباً عبر واتساب أو على رقم الهاتف لتأكيد التفاصيل.",
     btnTrack: "تتبع طلبي",
     btnHome:  "الرئيسية",
   },
@@ -343,23 +345,28 @@ type LangContextType = { lang: Lang; setLang: (l: Lang) => void; tx: Translation
 
 const LangContext = createContext<LangContextType>({ lang: "en", setLang: () => {}, tx: en });
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+function persist(l: Lang) {
+  localStorage.setItem(LANG_COOKIE, l);
+  // cookie lets the server render the right dir/lang, so there is no RTL flash
+  document.cookie = `${LANG_COOKIE}=${l}; path=/; max-age=31536000; samesite=lax`;
+  document.documentElement.dir  = l === "ar" ? "rtl" : "ltr";
+  document.documentElement.lang = l;
+}
+
+export function LanguageProvider({ children, initialLang = "en" }: { children: ReactNode; initialLang?: Lang }) {
+  const [lang, setLangState] = useState<Lang>(initialLang);
 
   useEffect(() => {
-    const stored = localStorage.getItem("alnuzha_lang") as Lang;
-    if (stored === "en" || stored === "ar") {
-      setLangState(stored);
-      document.documentElement.dir  = stored === "ar" ? "rtl" : "ltr";
-      document.documentElement.lang = stored;
-    }
-  }, []);
+    // migrate a pre-cookie preference left in localStorage
+    const stored = localStorage.getItem(LANG_COOKIE) as Lang | null;
+    const l = stored === "en" || stored === "ar" ? stored : initialLang;
+    if (l !== initialLang) setLangState(l);
+    persist(l);
+  }, [initialLang]);
 
   function setLang(l: Lang) {
     setLangState(l);
-    localStorage.setItem("alnuzha_lang", l);
-    document.documentElement.dir  = l === "ar" ? "rtl" : "ltr";
-    document.documentElement.lang = l;
+    persist(l);
   }
 
   return (

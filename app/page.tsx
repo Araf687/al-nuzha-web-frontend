@@ -61,7 +61,7 @@ const FEATURE_ICONS = [ShieldCheck, Wind, Settings2, FileText, Zap, RefreshCw];
 const STEP_ICONS    = [ClipboardList, PhoneCall, Truck, BadgeCheck];
 
 const REVIEWS = [
-  { initials: "AK", name: "Ahmed Khan",    area: "Marina Resident",    text: "Al-Nuzha Electronics is the only team I trust. Their response time in Dubai Marina is unmatched, and the work is always pristine." },
+  { initials: "AK", name: "Ahmed Khan",    area: "Al Reem Resident",   text: "Al Nuzha Electrical Repairs is the only team I trust. Their response time in Abu Dhabi is unmatched, and the work is always pristine." },
   { initials: "SJ", name: "Sarah Johnson", area: "Palm Jumeirah",       text: "Highly professional. They repaired my high-end refrigerator the same day. Transparent pricing and genuine parts. Five stars!" },
   { initials: "MT", name: "Mark T.",        area: "JLT Office Manager", text: "Found them through a neighbor and won't go anywhere else. Exceptional AC servicing and very polite technicians." },
 ];
@@ -184,7 +184,7 @@ export default function Home() {
         <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
           <Image
             src="/home/hero/customer_homepage_updated_branding_image_2.png"
-            alt="Al-Nuzha Electronics technician"
+            alt="Al Nuzha Electrical Repairs technician"
             fill priority
             style={{ objectFit: "cover", objectPosition: "center" }}
           />
@@ -283,7 +283,7 @@ export default function Home() {
             <div style={{ position: "relative" }}>
               <div style={{ borderRadius: 32, overflow: "hidden", border: "3px solid rgba(251,191,36,0.25)", boxShadow: "0 32px 64px rgba(0,0,0,0.3)" }}>
                 <div className="why-img" style={{ position: "relative" }}>
-                  <Image src="/home/standard/standard_side.png" alt="Certified Al-Nuzha technician" fill style={{ objectFit: "cover" }} />
+                  <Image src="/home/standard/standard_side.png" alt="Certified Al Nuzha Electrical Repairs technician" fill style={{ objectFit: "cover" }} />
                 </div>
               </div>
               <div className="why-badge" style={{ background: "#fbbf24", color: "#064e3b", padding: "20px 24px", borderRadius: 20, boxShadow: "0 16px 40px rgba(251,191,36,0.35)", border: "2px solid rgba(255,255,255,0.2)" }}>
@@ -421,8 +421,8 @@ export default function Home() {
 
             <div className="footer-brand">
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-                <img src="/logo.png" alt="Al-Nuzha" width={44} height={44} style={{ borderRadius: "50%", objectFit: "cover", filter: "brightness(0) invert(1)" }} />
-                <span style={{ fontFamily: "'Fraunces', var(--font-arabic), Georgia, serif", fontWeight: 700, fontSize: 20, color: "#fff" }}>Al-Nuzha</span>
+                <img src="/logo.png" alt="Al Nuzha Electrical Repairs" width={44} height={44} style={{ borderRadius: "50%", objectFit: "cover", filter: "brightness(0) invert(1)" }} />
+                <span style={{ fontFamily: "'Fraunces', var(--font-arabic), Georgia, serif", fontWeight: 700, fontSize: 20, color: "#fff" }}>Al Nuzha Electrical Repairs</span>
               </div>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.75, maxWidth: 260, marginBottom: 24 }}>
                 {h.footerDesc}

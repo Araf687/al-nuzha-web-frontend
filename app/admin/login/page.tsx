@@ -117,7 +117,7 @@ export default function LoginPage() {
               color: "#fff", lineHeight: 1.08,
               marginBottom: 24, letterSpacing: "-0.01em",
             }}>
-              Redefining<br />Dubai&apos;s Comfort.
+              Redefining<br />Abu Dhabi&apos;s Comfort.
             </h1>
             <p style={{ fontSize: 16, color: "rgba(255,255,255,0.52)", lineHeight: 1.78, maxWidth: 400, marginBottom: 64 }}>
               Experience precision-engineered AC maintenance and premium repair services designed for the discerning resident.
@@ -152,8 +152,8 @@ export default function LoginPage() {
 
             {/* Logo */}
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 44 }}>
-              <img src="/logo.png" alt="Al-Nuzha" width={44} height={44} style={{ borderRadius: 11, objectFit: "cover", flexShrink: 0 }} />
-              <span style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 19, fontWeight: 700, color: "#0f1a15" }}>Al-Nuzha</span>
+              <img src="/logo.png" alt="Al Nuzha Electrical Repairs" width={44} height={44} style={{ borderRadius: 11, objectFit: "cover", flexShrink: 0 }} />
+              <span style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 19, fontWeight: 700, color: "#0f1a15" }}>Al Nuzha Electrical Repairs</span>
             </div>
 
             <h2 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: 34, fontWeight: 800, color: "#0f1a15", marginBottom: 8, letterSpacing: "-0.01em" }}>
@@ -262,7 +262,7 @@ export default function LoginPage() {
             </div>
 
             <p style={{ textAlign: "center", fontSize: 14, color: "#7a9b8e" }}>
-              New to Al-Nuzha?{" "}
+              New to Al Nuzha Electrical Repairs?{" "}
               <a href="/request" style={{ color: "#0f1a15", fontWeight: 700, textDecoration: "none" }}>Create an Account</a>
             </p>
 

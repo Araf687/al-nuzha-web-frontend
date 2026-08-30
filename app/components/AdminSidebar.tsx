@@ -39,9 +39,9 @@ export default function AdminSidebar({ open, onClose }: { open?: boolean; onClos
 
       <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid #e8ebe6" }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-          <img src="/logo.png" alt="Al-Nuzha" width={28} height={28} style={{ borderRadius: 6, objectFit: "cover" }} />
+          <img src="/logo.png" alt="Al Nuzha Electrical Repairs" width={28} height={28} style={{ borderRadius: 6, objectFit: "cover" }} />
           <span style={{ fontFamily: "var(--font-display, Syne, sans-serif)", fontWeight: 700, fontSize: 16, color: "#1a1a18" }}>
-            Al-Nuzha <span style={{ color: "var(--brand)" }}>Tech</span>
+            Al Nuzha Electrical Repairs
           </span>
         </Link>
         <div style={{ marginTop: 4, fontSize: 11, color: "#888", paddingLeft: 2 }}>Admin panel</div>

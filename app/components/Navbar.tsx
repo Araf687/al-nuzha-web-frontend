@@ -189,9 +189,9 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-            <img src="/logo.png" alt="Al-Nuzha" width={52} height={52} style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+            <img src="/logo.png" alt="Al Nuzha Electrical Repairs" width={52} height={52} style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
             <span style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 700, fontSize: 20, color: "#064e3b", letterSpacing: "-0.2px" }}>
-              Al-Nuzha Electronics
+              Al Nuzha Electrical Repairs
             </span>
           </Link>
 

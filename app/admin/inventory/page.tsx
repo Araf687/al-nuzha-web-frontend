@@ -142,7 +142,6 @@ export default function AdminInventoryPage() {
       {loading && (
         <div style={{ display: "flex", alignItems: "center", gap: 10, color: "#888", fontSize: 14, marginTop: 32 }}>
           <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Loading inventory…
-          <style>{`@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}`}</style>
         </div>
       )}
 

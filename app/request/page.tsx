@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { MapPin, ArrowRight, ArrowLeft, CheckCircle, ChevronRight, Loader2 } from "lucide-react";
+import { MapPin, ArrowRight, ArrowLeft, CheckCircle, ChevronRight, Loader2, X } from "lucide-react";
 import Navbar from "../components/Navbar";
 import { useLang } from "@/lib/i18n";
 
@@ -17,40 +17,13 @@ export default function RequestPage() {
   function getLocation() {
     setLocLoading(true);
     navigator.geolocation?.getCurrentPosition(
-      pos => { setAddress(`Near ${pos.coords.latitude.toFixed(3)}°N, ${pos.coords.longitude.toFixed(3)}°E — Dubai`); setLocLoading(false); },
-      () => { setAddress("Dubai, UAE"); setLocLoading(false); }
+      pos => { setAddress(`Near ${pos.coords.latitude.toFixed(3)}°N, ${pos.coords.longitude.toFixed(3)}°E — Abu Dhabi`); setLocLoading(false); },
+      () => { setAddress("Abu Dhabi, UAE"); setLocLoading(false); }
     );
   }
 
   const inputStyle = { width: "100%", padding: "13px 16px", border: "1.5px solid #d4e8e0", borderRadius: 12, fontSize: 14, outline: "none", background: "#fff", color: "#0f1a15", fontFamily: "Plus Jakarta Sans, var(--font-arabic), sans-serif", transition: "border-color .2s" };
   const focusProps = { onFocus: (e: React.FocusEvent<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>) => (e.target.style.borderColor = "#0f6e56"), onBlur: (e: React.FocusEvent<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>) => (e.target.style.borderColor = "#d4e8e0") };
-
-  if (submitted) return (
-    <div style={{ minHeight: "100vh", background: "#f5faf8" }}>
-      <Navbar />
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "80vh", padding: 28 }}>
-        <div style={{ textAlign: "center", maxWidth: 480 }}>
-          <div style={{ width: 84, height: 84, borderRadius: "50%", background: "linear-gradient(135deg,#0f6e56,#1a9e75)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 28px", boxShadow: "0 12px 36px rgba(15,110,86,0.38)", animation: "pop .5s cubic-bezier(.175,.885,.32,1.275)" }}>
-            <CheckCircle size={40} color="#fff" strokeWidth={2} />
-          </div>
-          <style>{`@keyframes pop{from{transform:scale(0) rotate(-10deg)}to{transform:scale(1) rotate(0)}}`}</style>
-          <h2 style={{ fontFamily: "'Fraunces', var(--font-arabic), Georgia, serif", fontSize: 34, fontWeight: 800, marginBottom: 10 }}>{r.successTitle}</h2>
-          <div style={{ display: "inline-block", background: "#e8f5f0", color: "#0f6e56", fontWeight: 700, padding: "7px 20px", borderRadius: 50, fontSize: 14, marginBottom: 18, fontFamily: "Plus Jakarta Sans, var(--font-arabic), sans-serif" }}>
-            {r.successRef}: <strong>JOB-2055</strong>
-          </div>
-          <p style={{ color: "#7a9b8e", fontSize: 15, lineHeight: 1.75, marginBottom: 36 }}>{r.successBody}</p>
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <Link href="/dashboard" style={{ padding: "13px 28px", borderRadius: 50, background: "linear-gradient(135deg,#0f6e56,#1a9e75)", color: "#fff", textDecoration: "none", fontWeight: 700, fontSize: 14, display: "inline-flex", alignItems: "center", gap: 7, boxShadow: "0 6px 20px rgba(15,110,86,0.35)" }}>
-              {r.btnTrack} <ArrowRight size={14} strokeWidth={2.5} className="arrow-icon" />
-            </Link>
-            <Link href="/" style={{ padding: "13px 24px", borderRadius: 50, background: "#fff", color: "#3d5a4e", textDecoration: "none", fontWeight: 600, fontSize: 14, border: "1.5px solid #d4e8e0" }}>
-              {r.btnHome}
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
   const steps = [r.step1, r.step2, r.step3];
   const stepIcons = [MapPin, ChevronRight, CheckCircle];
@@ -58,6 +31,25 @@ export default function RequestPage() {
   return (
     <div style={{ minHeight: "100vh", background: "#f5faf8" }}>
       <Navbar />
+
+      {submitted && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(6,43,31,0.45)", backdropFilter: "blur(4px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ position: "relative", width: "100%", maxWidth: 520, background: "#fff", borderRadius: 28, padding: "34px 28px 28px", boxShadow: "0 32px 80px rgba(6,43,31,0.24)", textAlign: "center", animation: "pop .35s ease-out" }}>
+            <button onClick={() => setSubmitted(false)} aria-label="Close success message" style={{ position: "absolute", top: 16, right: 16, width: 36, height: 36, borderRadius: 9999, border: "none", background: "#eef7f3", color: "#3d5a4e", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <X size={18} strokeWidth={2.2} />
+            </button>
+            <div style={{ width: 86, height: 86, borderRadius: "50%", background: "linear-gradient(135deg,#0f6e56,#1a9e75)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", boxShadow: "0 14px 36px rgba(15,110,86,0.28)" }}>
+              <CheckCircle size={42} color="#fff" strokeWidth={2} />
+            </div>
+            <h2 style={{ fontFamily: "'Fraunces', var(--font-arabic), Georgia, serif", fontSize: 30, fontWeight: 800, marginBottom: 10, color: "#0f1a15" }}>{r.successTitle}</h2>
+            <p style={{ color: "#6f8b80", fontSize: 15, lineHeight: 1.8, marginBottom: 24 }}>{r.successBody}</p>
+            <Link href="/" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 26px", borderRadius: 9999, background: "linear-gradient(135deg,#0f6e56,#1a9e75)", color: "#fff", textDecoration: "none", fontWeight: 700, fontSize: 14, boxShadow: "0 6px 20px rgba(15,110,86,0.28)" }}>
+              {r.btnHome} <ArrowRight size={14} strokeWidth={2.5} />
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "124px 24px 60px" }}>
 
         <div style={{ textAlign: "center", marginBottom: 44 }}>
@@ -110,7 +102,6 @@ export default function RequestPage() {
                   </button>
                 </div>
               </div>
-              <style>{`@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}`}</style>
               <button onClick={() => setStep(2)} disabled={!form.name || !form.phone || !address} style={{ width: "100%", padding: "15px", borderRadius: 50, border: "none", background: "linear-gradient(135deg,#0f6e56,#1a9e75)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: !form.name || !form.phone || !address ? "not-allowed" : "pointer", opacity: !form.name || !form.phone || !address ? 0.45 : 1, boxShadow: "0 6px 22px rgba(15,110,86,0.38)", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "Plus Jakarta Sans, var(--font-arabic), sans-serif" }}>
                 {r.btnContinue} <ArrowRight size={15} strokeWidth={2.5} className="arrow-icon" />
               </button>

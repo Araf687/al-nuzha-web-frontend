@@ -285,7 +285,6 @@ export default function AdminDashboard() {
       {loading ? (
         <div style={{ padding: 32, display: "flex", alignItems: "center", gap: 10, color: "#888", fontSize: 14 }}>
           <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
-          <style>{`@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}`}</style>
           Loading dashboard…
         </div>
       ) : !isCompleteDashboard(data) || !stats ? (

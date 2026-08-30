@@ -103,9 +103,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Menu size={22} />
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-          <img src="/logo.png" alt="Al-Nuzha" width={24} height={24} style={{ borderRadius: 5, objectFit: "cover" }} />
+          <img src="/logo.png" alt="Al Nuzha Electrical Repairs" width={24} height={24} style={{ borderRadius: 5, objectFit: "cover" }} />
           <span style={{ fontFamily: "var(--font-display, Syne, sans-serif)", fontWeight: 700, fontSize: 15, color: "#1a1a18" }}>
-            Al-Nuzha <span style={{ color: "var(--brand, #0a4a35)" }}>Tech</span>
+            Al Nuzha Electrical Repairs
           </span>
         </div>
       </div>
