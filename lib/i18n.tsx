@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 
 import { LANG_COOKIE, type Lang } from "./lang";
 export { LANG_COOKIE };
@@ -345,28 +345,17 @@ type LangContextType = { lang: Lang; setLang: (l: Lang) => void; tx: Translation
 
 const LangContext = createContext<LangContextType>({ lang: "en", setLang: () => {}, tx: en });
 
-function persist(l: Lang) {
-  localStorage.setItem(LANG_COOKIE, l);
-  // cookie lets the server render the right dir/lang, so there is no RTL flash
-  document.cookie = `${LANG_COOKIE}=${l}; path=/; max-age=31536000; samesite=lax`;
-  document.documentElement.dir  = l === "ar" ? "rtl" : "ltr";
-  document.documentElement.lang = l;
-}
-
 export function LanguageProvider({ children, initialLang = "en" }: { children: ReactNode; initialLang?: Lang }) {
   const [lang, setLangState] = useState<Lang>(initialLang);
 
-  useEffect(() => {
-    // migrate a pre-cookie preference left in localStorage
-    const stored = localStorage.getItem(LANG_COOKIE) as Lang | null;
-    const l = stored === "en" || stored === "ar" ? stored : initialLang;
-    if (l !== initialLang) setLangState(l);
-    persist(l);
-  }, [initialLang]);
-
+  // The cookie is the single source of truth: the server reads it in the root
+  // layout, so `initialLang` is already correct on the first render and no
+  // effect is needed to sync dir/lang on mount.
   function setLang(l: Lang) {
     setLangState(l);
-    persist(l);
+    document.cookie = `${LANG_COOKIE}=${l}; path=/; max-age=31536000; samesite=lax`;
+    document.documentElement.dir  = l === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = l;
   }
 
   return (
