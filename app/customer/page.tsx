@@ -7,19 +7,26 @@ import {
   Wind, Wrench, Refrigerator, Sparkles, Package, CalendarCheck2,
   Clock, ArrowRight, CheckCircle2, Loader2,
 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, assetUrl } from "@/lib/api";
 import { type LucideIcon } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
 /* ── Types ─────────────────────────────────────────────────── */
 interface Service {
   id: string;
-  name: string;
-  description: string;
-  priceLabel: string;
-  displayOrder: number;
-  isActive: boolean;
+  title: string;
+  startingPrice: number | null;
+  isCustomQuote: boolean;
+  priority: number;
+  thumbnail: string;
+  createdAt: string;
 }
+
+// Same order as the API / home page: priority ascending, then newest first
+const byPriority = (a: Service, b: Service) =>
+  a.priority - b.priority || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+
+const formatAmount = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2));
 
 /* ── Icon + image map (keyed by service name fragment) ─────── */
 const ASSET_MAP: { match: RegExp; Icon: LucideIcon; img: string; time: string }[] = [
@@ -115,15 +122,16 @@ export default function ServicesPage() {
   const [filter, setFilter]     = useState("all");
   const { tx } = useLang();
   const c = tx.customer;
+  const h = tx.home;
 
   useEffect(() => {
-    api.getServices()
+    api.listServices()
       .then(data => setServices(data as Service[]))
-      .catch(e => setError(e instanceof Error ? e.message : "Failed to load services"))
+      .catch(() => setError(h.servicesError))
       .finally(() => setLoading(false));
-  }, []);
+  }, [h.servicesError]);
 
-  const sorted    = [...services].sort((a, b) => a.displayOrder - b.displayOrder);
+  const sorted    = [...services].sort(byPriority);
   const displayed = filter === "popular" ? sorted.slice(0, 2) : sorted;
 
   return (
@@ -162,11 +170,16 @@ export default function ServicesPage() {
           {error && !loading && (
             <div style={{ background: "#FCEBEB", border: "1px solid #f5c6c6", borderRadius: 12, padding: "16px 20px", color: "#791F1F", fontSize: 14, textAlign: "center" }}>{error}</div>
           )}
-          {!loading && !error && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(340px,1fr))", gap: 24 }}>
+          {!loading && !error && displayed.length === 0 && (
+            <p style={{ textAlign: "center", color: "#3d5a4e", fontSize: 15, padding: "40px 0" }}>{h.servicesEmpty}</p>
+          )}
+          {!loading && !error && displayed.length > 0 && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(min(340px,100%),1fr))", gap: 24 }}>
               {displayed.map((svc, i) => {
-                const { Icon, img, time } = assetFor(svc.name);
+                const { Icon, img, time } = assetFor(svc.title);
                 const popular = i < 2;
+                const custom  = svc.isCustomQuote || svc.startingPrice === null;
+                const price   = custom ? h.serviceCustomQuote : h.servicePriceFrom.replace("{price}", formatAmount(Number(svc.startingPrice)));
                 return (
                   <FadeUp key={svc.id} delay={i * 0.08}>
                     <div style={{ background: "#fff", borderRadius: 22, overflow: "hidden", border: popular ? "2px solid #0f6e56" : "1px solid #d4e8e0", position: "relative", transition: "transform .28s, box-shadow .28s" }}
@@ -175,10 +188,18 @@ export default function ServicesPage() {
                     >
                       {popular && <div style={{ position: "absolute", top: 0, right: 20, background: "linear-gradient(135deg,#0f6e56,#1a9e75)", color: "#fff", fontSize: 10, fontWeight: 700, padding: "4px 14px", borderRadius: "0 0 12px 12px", letterSpacing: "0.06em", zIndex: 2 }}>{c.popularBadge}</div>}
                       <div className="svc-img-h" style={{ position: "relative", overflow: "hidden" }}>
-                        <Image src={img} alt={svc.name} fill style={{ objectFit: "cover", transition: "transform .5s" }}
-                          onMouseEnter={e => (e.currentTarget as HTMLImageElement).style.transform = "scale(1.07)"}
-                          onMouseLeave={e => (e.currentTarget as HTMLImageElement).style.transform = ""}
-                        />
+                        {svc.thumbnail ? (
+                          // Plain <img>: thumbnails are served by the API host, which next/image does not whitelist
+                          <img src={assetUrl(svc.thumbnail)} alt={svc.title} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transition: "transform .5s" }}
+                            onMouseEnter={e => (e.currentTarget as HTMLImageElement).style.transform = "scale(1.07)"}
+                            onMouseLeave={e => (e.currentTarget as HTMLImageElement).style.transform = ""}
+                          />
+                        ) : (
+                          <Image src={img} alt={svc.title} fill style={{ objectFit: "cover", transition: "transform .5s" }}
+                            onMouseEnter={e => (e.currentTarget as HTMLImageElement).style.transform = "scale(1.07)"}
+                            onMouseLeave={e => (e.currentTarget as HTMLImageElement).style.transform = ""}
+                          />
+                        )}
                         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top,rgba(6,43,31,0.65) 0%,transparent 55%)" }} />
                         <div style={{ position: "absolute", top: 14, left: 14, width: 38, height: 38, borderRadius: 10, background: "rgba(255,255,255,0.18)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(255,255,255,0.25)" }}>
                           <Icon size={18} color="#fff" strokeWidth={1.8} />
@@ -186,14 +207,13 @@ export default function ServicesPage() {
                       </div>
                       <div style={{ padding: "22px 24px 26px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-                          <h3 style={{ fontFamily: "'Fraunces', var(--font-arabic), Georgia, serif", fontSize: 21, fontWeight: 700 }}>{svc.name}</h3>
+                          <h3 style={{ fontFamily: "'Fraunces', var(--font-arabic), Georgia, serif", fontSize: 21, fontWeight: 700 }}>{svc.title}</h3>
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: "#7a9b8e", whiteSpace: "nowrap", marginLeft: 8, marginTop: 4 }}><Clock size={12} />{time}</span>
                         </div>
-                        <p style={{ fontSize: 14, color: "#7a9b8e", lineHeight: 1.65, marginBottom: 18 }}>{svc.description}</p>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ fontSize: 17, fontWeight: 700, color: "#0f6e56" }}>{svc.priceLabel}</span>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
+                          <span style={{ fontSize: 16, fontWeight: 700, color: "#0f6e56" }}>{price}</span>
                           <Link href="/request" style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "9px 18px", borderRadius: 50, background: popular ? "linear-gradient(135deg,#0f6e56,#1a9e75)" : "#e8f5f0", color: popular ? "#fff" : "#0f6e56", textDecoration: "none", fontWeight: 600, fontSize: 13, boxShadow: popular ? "0 4px 14px rgba(15,110,86,0.32)" : "none" }}>
-                            {c.bookNow} <ArrowRight size={12} className="arrow-icon" />
+                            {custom ? h.serviceQuoteCta : c.bookNow} <ArrowRight size={12} className="arrow-icon" />
                           </Link>
                         </div>
                       </div>

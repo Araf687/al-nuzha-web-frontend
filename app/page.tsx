@@ -10,6 +10,7 @@ import {
   FileText,
 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import { api, assetUrl } from "@/lib/api";
 
 /* ─────────────── Scroll-fade helpers ────────────────────────────── */
 function useFade(threshold = 0.1) {
@@ -48,14 +49,21 @@ function FadeRight({ children, delay = 0 }: { children: React.ReactNode; delay?:
 }
 
 /* ─────────────── Static (non-translatable) data ──────────────────── */
-const SERVICE_IMGS = [
-  "/home/services/central_ac_repair.png",
-  "/home/services/fridge_maintanace.png",
-  "/home/services/split_ac_cleaning.png",
-  "/home/services/smart_thermostats.png",
-  "/home/services/commercial_chillers.png",
-  "/home/services/gas_refilling.png",
-];
+interface ApiService {
+  id: string;
+  title: string;
+  startingPrice: number | null;
+  isCustomQuote: boolean;
+  priority: number;
+  thumbnail: string;
+  createdAt: string;
+}
+
+// Same order as the API: priority ascending, then newest first
+const byPriority = (a: ApiService, b: ApiService) =>
+  a.priority - b.priority || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+
+const formatAmount = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2));
 
 const FEATURE_ICONS = [ShieldCheck, Wind, Settings2, FileText, Zap, RefreshCw];
 const STEP_ICONS    = [ClipboardList, PhoneCall, Truck, BadgeCheck];
@@ -77,6 +85,8 @@ const PAGE_CSS = `
   .svc-img { transition: transform .5s ease; }
   .svc-overlay { background: linear-gradient(to top, rgba(6,78,59,0.92) 0%, rgba(6,78,59,0) 60%); }
   .svc-img-wrap { height: 320px; }
+  .svc-skeleton { border-radius: 20px; background: linear-gradient(90deg, #e6efeb 25%, #f2f7f5 50%, #e6efeb 75%); background-size: 200% 100%; animation: svc-shimmer 1.4s infinite; }
+  @keyframes svc-shimmer { from { background-position: 200% 0 } to { background-position: -200% 0 } }
 
   /* Footer link hover */
   .ftr-link { color: rgba(255,255,255,0.75); font-size: 15px; margin-bottom: 14px; cursor: pointer; transition: color .18s; text-decoration: none; display: block; font-family: "Plus Jakarta Sans", var(--font-arabic), sans-serif; }
@@ -174,6 +184,17 @@ export default function Home() {
   const { tx } = useLang();
   const h = tx.home;
 
+  const [services, setServices]           = useState<ApiService[]>([]);
+  const [servicesLoading, setServicesLoading] = useState(true);
+  const [servicesError, setServicesError] = useState(false);
+
+  useEffect(() => {
+    api.listServices()
+      .then(data => setServices([...(data as ApiService[])].sort(byPriority)))
+      .catch(() => setServicesError(true))
+      .finally(() => setServicesLoading(false));
+  }, []);
+
   return (
     <div style={{ minHeight: "100vh", background: "#f9f9ff", overflowX: "hidden", fontFamily: "Plus Jakarta Sans, var(--font-arabic), sans-serif" }}>
       <style>{PAGE_CSS}</style>
@@ -249,30 +270,45 @@ export default function Home() {
           </div>
         </FadeUp>
 
-        <div className="svc-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 28 }}>
-          {h.services.map(({ name, price, cta }, i) => (
-            <FadeUp key={name} delay={i * 0.07}>
-              <div className="svc-card">
-                <div className="svc-img-wrap" style={{ position: "relative", overflow: "hidden" }}>
-                  <Image src={SERVICE_IMGS[i]} alt={name} fill className="svc-img" style={{ objectFit: "cover" }} />
-                  <div className="svc-overlay" style={{ position: "absolute", inset: 0 }} />
-                  <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: "24px" }}>
-                    <div style={{ display: "inline-block", background: "#fbbf24", color: "#064e3b", fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 9999, width: "fit-content", marginBottom: 10 }}>
-                      {price}
-                    </div>
-                    <h3 style={{ fontFamily: "'Fraunces', var(--font-arabic), Georgia, serif", fontSize: 22, fontWeight: 600, color: "#fff", marginBottom: 12, lineHeight: 1.2 }}>{name}</h3>
-                    <Link href="/request" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600, color: "#fff", textDecoration: "none", fontFamily: "Plus Jakarta Sans, var(--font-arabic), sans-serif", transition: "color .18s" }}
-                      onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = "#fbbf24"}
-                      onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = "#fff"}
-                    >
-                      {cta} <ArrowRight size={15} className="arrow-icon" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </FadeUp>
-          ))}
-        </div>
+        {!servicesLoading && (servicesError || services.length === 0) ? (
+          <p style={{ textAlign: "center", color: "#3d5a4e", fontSize: 15 }}>
+            {servicesError ? h.servicesError : h.servicesEmpty}
+          </p>
+        ) : (
+          <div className="svc-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 28 }}>
+            {servicesLoading
+              ? [0, 1, 2].map(n => <div key={n} className="svc-img-wrap svc-skeleton" aria-hidden="true" />)
+              : services.map((s, i) => {
+                  const custom = s.isCustomQuote || s.startingPrice === null;
+                  const price  = custom ? h.serviceCustomQuote : h.servicePriceFrom.replace("{price}", formatAmount(Number(s.startingPrice)));
+                  return (
+                    <FadeUp key={s.id} delay={i * 0.07}>
+                      <div className="svc-card">
+                        <div className="svc-img-wrap" style={{ position: "relative", overflow: "hidden", background: "#064e3b" }}>
+                          {s.thumbnail && (
+                            // Plain <img>: thumbnails are served by the API host, which next/image does not whitelist
+                            <img src={assetUrl(s.thumbnail)} alt={s.title} className="svc-img" loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                          )}
+                          <div className="svc-overlay" style={{ position: "absolute", inset: 0 }} />
+                          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: "24px" }}>
+                            <div style={{ display: "inline-block", background: "#fbbf24", color: "#064e3b", fontSize: 12, fontWeight: 700, padding: "5px 14px", borderRadius: 9999, width: "fit-content", marginBottom: 10 }}>
+                              {price}
+                            </div>
+                            <h3 style={{ fontFamily: "'Fraunces', var(--font-arabic), Georgia, serif", fontSize: 22, fontWeight: 600, color: "#fff", marginBottom: 12, lineHeight: 1.2 }}>{s.title}</h3>
+                            <Link href="/request" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600, color: "#fff", textDecoration: "none", fontFamily: "Plus Jakarta Sans, var(--font-arabic), sans-serif", transition: "color .18s" }}
+                              onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = "#fbbf24"}
+                              onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = "#fff"}
+                            >
+                              {custom ? h.serviceQuoteCta : h.serviceBookCta} <ArrowRight size={15} className="arrow-icon" />
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    </FadeUp>
+                  );
+                })}
+          </div>
+        )}
       </section>
 
       {/* ══ WHY US ══════════════════════════════════════════════════ */}

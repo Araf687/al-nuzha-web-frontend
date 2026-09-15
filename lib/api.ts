@@ -6,8 +6,10 @@ export async function apiFetch<T>(
   options: RequestInit = {},
   token?: string,
 ): Promise<T> {
+  // Let the browser set the multipart boundary for FormData bodies
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers as Record<string, string> ?? {}),
   };
@@ -17,6 +19,13 @@ export async function apiFetch<T>(
     throw new Error((err as { message: string }).message ?? "API error");
   }
   return res.json() as Promise<T>;
+}
+
+// Uploaded files (e.g. /uploads/services/x.jpg) are served from the API origin, without /api/v1
+export function assetUrl(path?: string | null) {
+  if (!path) return "";
+  if (/^https?:\/\//.test(path)) return path;
+  return `${API_BASE.replace(/\/api\/v\d+\/?$/, "")}${path}`;
 }
 
 interface StaffPerformanceRow {
@@ -111,5 +120,11 @@ export const api = {
 
   // Services catalogue
   getServices:      () => apiFetch("/services-catalogue"),
+
+  // Services (title, startingPrice, thumbnail) — create/update take FormData
+  listServices:  ()                                          => apiFetch("/services"),
+  createService: (body: FormData, token: string)             => apiFetch("/services",       { method: "POST",   body }, token),
+  updateService: (id: string, body: FormData, token: string) => apiFetch(`/services/${id}`, { method: "PATCH",  body }, token),
+  deleteService: (id: string, token: string)                 => apiFetch(`/services/${id}`, { method: "DELETE" }, token),
   getReviews:       () => apiFetch("/reviews"),
 };

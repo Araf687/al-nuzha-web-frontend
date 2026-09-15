@@ -1,13 +1,14 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, ClipboardList, Users, UserCheck, Package, FileText, LogOut, ReceiptText, X } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Users, UserCheck, Package, FileText, LogOut, ReceiptText, Wrench, X } from "lucide-react";
 
 const items = [
   { href: "/admin",                label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/jobs",           label: "All jobs",  icon: ClipboardList },
   { href: "/admin/customers",      label: "Customers", icon: Users },
   { href: "/admin/staff",          label: "Staff",     icon: UserCheck },
+  { href: "/admin/services",       label: "Services",  icon: Wrench },
   { href: "/admin/parts",          label: "Parts",     icon: Package },
   { href: "/admin/parts/challans", label: "Challans",  icon: ReceiptText },
   { href: "/admin/invoices",       label: "Invoices",  icon: FileText },
