@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import Badge from "../../components/Badge";
-import { Search, Loader2, RefreshCw, X, ChevronDown, User, FileText, Wrench, CheckCircle2 } from "lucide-react";
+import { Search, Loader2, RefreshCw, X, User, FileText, Wrench } from "lucide-react";
 import { api } from "@/lib/api";
+import PaymentModal, { type PaymentInvoice } from "../../components/PaymentModal";
 
 /* ── Types ─────────────────────────────────────────────────────── */
 interface Invoice {
@@ -13,6 +14,7 @@ interface Invoice {
   total: string | number;
   paymentStatus: string;
   paymentMethod?: string | null;
+  advanceAmount?: string | number;
   pdfUrl?: string | null;
   issuedAt: string;
   paidAt?: string | null;
@@ -49,7 +51,7 @@ function fmtTime(s?: string | null) {
   if (!s) return "—";
   return new Date(s).toLocaleTimeString("en-AE", { hour: "2-digit", minute: "2-digit" });
 }
-const METHOD_LABEL: Record<string, string> = { cash: "Cash", card: "Card", bank_transfer: "Bank Transfer" };
+const METHOD_LABEL: Record<string, string> = { cash: "Cash", card: "Card", bank_transfer: "Bank Transfer", due: "Due" };
 
 /* ── CSS ───────────────────────────────────────────────────────── */
 const CSS = `
@@ -90,9 +92,6 @@ const CSS = `
   .field-input:focus { border-color:#0F6E56; }
   .field-label { font-size:12px;font-weight:600;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em; }
 
-  /* Mark paid modal */
-  .modal-backdrop { position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .15s ease; }
-  .modal-box      { background:#fff;border-radius:20px;width:100%;max-width:380px;padding:32px;position:relative;animation:slideUp .2s ease; }
 
   @media (max-width: 768px) {
     .inv-wrap    { padding:16px 14px 40px; }
@@ -101,8 +100,6 @@ const CSS = `
     .inv-select  { font-size:12px;padding:7px 8px; }
     .drawer      { width:100vw; }
     .d-grid      { grid-template-columns:1fr; }
-    .modal-backdrop { padding:0;align-items:flex-end; }
-    .modal-box   { border-radius:16px 16px 0 0;padding:28px 24px; }
   }
 
   @media (max-width: 640px) {
@@ -124,11 +121,8 @@ export default function AdminInvoicesPage() {
   const [viewLoading, setViewLoading] = useState(false);
   const [viewError, setViewError]   = useState("");
 
-  /* Mark paid modal */
-  const [markingInv, setMarkingInv] = useState<Invoice | null>(null);
-  const [payMethod, setPayMethod]   = useState("cash");
-  const [marking, setMarking]       = useState(false);
-  const [markError, setMarkError]   = useState("");
+  /* Payment modal */
+  const [payingInv, setPayingInv] = useState<Invoice | null>(null);
 
   /* ── load ── */
   function fetchInvoices(status: string) {
@@ -147,7 +141,7 @@ export default function AdminInvoicesPage() {
   });
 
   const totalBilled  = invoices.reduce((s, i) => s + Number(i.total), 0);
-  const outstanding  = invoices.filter(i => i.paymentStatus !== "paid").reduce((s, i) => s + Number(i.total), 0);
+  const outstanding  = invoices.filter(i => i.paymentStatus !== "paid").reduce((s, i) => s + Number(i.total) - Number(i.advanceAmount ?? 0), 0);
   const paidCount    = invoices.filter(i => i.paymentStatus === "paid").length;
 
   /* ── view drawer ── */
@@ -160,24 +154,17 @@ export default function AdminInvoicesPage() {
   }
   function closeView() { setViewInv(null); setViewLoading(false); setViewError(""); }
 
-  /* ── mark paid ── */
-  function openMarkPaid(inv: Invoice) {
-    setMarkingInv(inv); setPayMethod("cash"); setMarkError("");
-  }
-  async function handleMarkPaid(e: { preventDefault(): void }) {
-    e.preventDefault();
-    if (!markingInv) return;
-    setMarking(true); setMarkError("");
-    try {
-      const updated = await api.markInvoicePaid(markingInv.id, { paymentMethod: payMethod }, getToken()) as Invoice;
-      setInvoices(prev => prev.map(i => i.id === updated.id ? updated : i));
-      if (viewInv?.id === updated.id) setViewInv(updated);
-      setMarkingInv(null);
-    } catch (e: unknown) {
-      setMarkError(e instanceof Error ? e.message : "Failed to mark paid");
-    } finally {
-      setMarking(false);
-    }
+  /* ── payment ── */
+  function handlePaymentSaved(updated: PaymentInvoice) {
+    const patch = {
+      paymentStatus: updated.paymentStatus,
+      paymentMethod: updated.paymentMethod,
+      advanceAmount: updated.advanceAmount ?? undefined,
+      paidAt: updated.paidAt,
+    };
+    setInvoices(prev => prev.map(i => i.id === updated.id ? { ...i, ...patch } : i));
+    setViewInv(prev => prev?.id === updated.id ? { ...prev, ...patch } : prev);
+    setPayingInv(null);
   }
 
   /* ══════════════════════ RENDER ═══════════════════════════════ */
@@ -268,9 +255,7 @@ export default function AdminInvoicesPage() {
                       <td style={{ padding:"11px 14px" }}>
                         <div style={{ display:"flex", gap:6 }}>
                           <button onClick={() => openView(inv.id)} style={{ fontSize:12, padding:"5px 12px", border:"1px solid #0F6E56", borderRadius:6, background:"transparent", cursor:"pointer", color:"#0F6E56", fontWeight:600 }}>View</button>
-                          {inv.paymentStatus !== "paid" && (
-                            <button onClick={() => openMarkPaid(inv)} style={{ fontSize:12, padding:"5px 10px", border:"1px solid #e0e0dc", borderRadius:6, background:"transparent", cursor:"pointer", color:"#555", fontWeight:600 }}>Mark paid</button>
-                          )}
+                          <button onClick={() => setPayingInv(inv)} style={{ fontSize:12, padding:"5px 10px", border:"1px solid #e0e0dc", borderRadius:6, background:"transparent", cursor:"pointer", color:"#555", fontWeight:600, whiteSpace:"nowrap" }}>Update payment</button>
                         </div>
                       </td>
                     </tr>
@@ -306,9 +291,7 @@ export default function AdminInvoicesPage() {
                   </div>
                   <div style={{ display:"flex", gap:6 }}>
                     <button onClick={() => openView(inv.id)} style={{ fontSize:12, padding:"6px 14px", border:"1px solid #0F6E56", borderRadius:6, background:"transparent", cursor:"pointer", color:"#0F6E56", fontWeight:600 }}>View</button>
-                    {inv.paymentStatus !== "paid" && (
-                      <button onClick={() => openMarkPaid(inv)} style={{ fontSize:12, padding:"6px 12px", border:"1px solid #e0e0dc", borderRadius:6, background:"transparent", cursor:"pointer", color:"#555", fontWeight:600 }}>Mark paid</button>
-                    )}
+                    <button onClick={() => setPayingInv(inv)} style={{ fontSize:12, padding:"6px 12px", border:"1px solid #e0e0dc", borderRadius:6, background:"transparent", cursor:"pointer", color:"#555", fontWeight:600, whiteSpace:"nowrap" }}>Update payment</button>
                   </div>
                 </div>
               </div>
@@ -339,11 +322,9 @@ export default function AdminInvoicesPage() {
                         ? <span style={{ fontSize:11, fontWeight:600, padding:"3px 10px", borderRadius:20, background:"#FAEEDA", color:"#633806" }}>Partial</span>
                         : <Badge variant={viewInv.paymentStatus} />
                       }
-                      {viewInv.paymentStatus !== "paid" && (
-                        <button onClick={() => openMarkPaid(viewInv)} style={{ fontSize:12, padding:"4px 12px", background:"#0F6E56", color:"#fff", border:"none", borderRadius:6, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
-                          Mark paid
-                        </button>
-                      )}
+                      <button onClick={() => setPayingInv(viewInv)} style={{ fontSize:12, padding:"4px 12px", background:"#0F6E56", color:"#fff", border:"none", borderRadius:6, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+                        Update payment
+                      </button>
                     </div>
                   </>
                 )}
@@ -395,6 +376,12 @@ export default function AdminInvoicesPage() {
                       <div className="d-cell"><div className="d-cell-lbl">Issued</div><div className="d-cell-val">{fmtDate(viewInv.issuedAt)}</div></div>
                       {viewInv.paidAt && <div className="d-cell"><div className="d-cell-lbl">Paid on</div><div className="d-cell-val">{fmtDate(viewInv.paidAt)}</div></div>}
                       {viewInv.paymentMethod && <div className="d-cell"><div className="d-cell-lbl">Method</div><div className="d-cell-val">{METHOD_LABEL[viewInv.paymentMethod] ?? viewInv.paymentMethod}</div></div>}
+                      {viewInv.paymentStatus === "partial" && (
+                        <>
+                          <div className="d-cell"><div className="d-cell-lbl">Paid so far</div><div className="d-cell-val" style={{ color:"#854F0B" }}>AED {fmt(viewInv.advanceAmount ?? 0)}</div></div>
+                          <div className="d-cell"><div className="d-cell-lbl">Balance due</div><div className="d-cell-val" style={{ color:"#791F1F" }}>AED {fmt(Number(viewInv.total) - Number(viewInv.advanceAmount ?? 0))}</div></div>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -503,41 +490,14 @@ export default function AdminInvoicesPage() {
         </>
       )}
 
-      {/* ══════ MARK PAID MODAL ════════════════════════════════════ */}
-      {markingInv && (
-        <div className="modal-backdrop" onClick={e => { if (e.target === e.currentTarget) { setMarkingInv(null); setMarkError(""); } }}>
-          <div className="modal-box">
-            <button onClick={() => { setMarkingInv(null); setMarkError(""); }} style={{ position:"absolute", top:16, right:16, background:"none", border:"none", cursor:"pointer", color:"#aaa" }}>
-              <X size={20} />
-            </button>
-            <h2 style={{ fontFamily:"'Fraunces', Georgia, serif", fontSize:20, fontWeight:700, marginBottom:6 }}>Mark as Paid</h2>
-            <p style={{ fontSize:13, color:"#888", marginBottom:22 }}>
-              {markingInv.customer?.name} — <strong>AED {fmt(markingInv.total)}</strong>
-            </p>
-            <form onSubmit={handleMarkPaid}>
-              <div style={{ marginBottom:20 }}>
-                <div className="field-label">Payment method</div>
-                <div style={{ position:"relative" }}>
-                  <select value={payMethod} onChange={e => setPayMethod(e.target.value)} className="field-input" style={{ appearance:"none", paddingRight:36, cursor:"pointer" }}>
-                    <option value="cash">Cash</option>
-                    <option value="card">Card</option>
-                    <option value="bank_transfer">Bank Transfer</option>
-                  </select>
-                  <ChevronDown size={14} color="#aaa" style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} />
-                </div>
-              </div>
-              {markError && <div style={{ background:"#FCEBEB", borderRadius:8, padding:"10px 14px", color:"#791F1F", fontSize:13, marginBottom:14 }}>{markError}</div>}
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 2fr", gap:10 }}>
-                <button type="button" onClick={() => { setMarkingInv(null); setMarkError(""); }} style={{ padding:"12px", borderRadius:50, border:"1.5px solid #e8ebe6", background:"#fff", color:"#555", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
-                  Cancel
-                </button>
-                <button type="submit" disabled={marking} style={{ padding:"12px", borderRadius:50, border:"none", background:"linear-gradient(135deg,#0F6E56,#1a9e75)", color:"#fff", fontSize:14, fontWeight:700, cursor:marking?"not-allowed":"pointer", opacity:marking?0.7:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8, fontFamily:"inherit" }}>
-                  {marking ? <><Loader2 size={14} style={{ animation:"spin 1s linear infinite" }} /> Saving…</> : <><CheckCircle2 size={14} /> Confirm Payment</>}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {/* ══════ PAYMENT MODAL ══════════════════════════════════════ */}
+      {payingInv && (
+        <PaymentModal
+          invoice={payingInv}
+          customerName={payingInv.customer?.name}
+          onClose={() => setPayingInv(null)}
+          onSaved={handlePaymentSaved}
+        />
       )}
     </div>
   );

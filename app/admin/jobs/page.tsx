@@ -6,6 +6,7 @@ import {
   ChevronDown, User, MapPin, Wrench, Clock, CheckCircle2, AlertCircle, DollarSign, FileText,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import PaymentModal, { type PaymentInvoice } from "../../components/PaymentModal";
 
 /* ── Types ───────────────────────────────────────────────────────── */
 interface ServiceRequest {
@@ -231,6 +232,7 @@ export default function AdminJobsPage() {
   const [newStatus, setNewStatus]     = useState("");
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [actionMsg, setActionMsg]     = useState("");
+  const [payingInv, setPayingInv]     = useState<Invoice | null>(null);
 
   /* ── helpers ── */
   function ff(key: string) {
@@ -342,6 +344,23 @@ export default function AdminJobsPage() {
     } finally {
       setUpdatingStatus(false);
     }
+  }
+
+  function handlePaymentSaved(updated: PaymentInvoice) {
+    const patch = {
+      paymentStatus: updated.paymentStatus as Invoice["paymentStatus"],
+      paymentMethod: updated.paymentMethod,
+      advanceAmount: updated.advanceAmount,
+      paidAt: updated.paidAt,
+    };
+    const merge = (j: ServiceRequest): ServiceRequest =>
+      j.jobReport?.invoice?.id === updated.id
+        ? { ...j, jobReport: { ...j.jobReport, invoice: { ...j.jobReport.invoice, ...patch } } }
+        : j;
+    setViewJob(prev => prev ? merge(prev) : prev);
+    setJobs(prev => prev.map(merge));
+    setPayingInv(null);
+    setActionMsg("Payment updated.");
   }
 
   /* ── Filtered list ── */
@@ -769,6 +788,9 @@ export default function AdminJobsPage() {
                               <span style={{ fontFamily:"monospace", fontSize:13, fontWeight:700, color:"#0F6E56" }}>{inv.invoiceRef}</span>
                               <span style={{ fontSize:17, fontWeight:700, color:"#0f1a15" }}>{fmtAed(inv.total)}</span>
                             </div>
+                            <button onClick={() => setPayingInv(inv)} style={{ width:"100%", marginBottom:12, padding:"10px", borderRadius:9, border:"1.5px solid #0F6E56", background:"#fff", color:"#0F6E56", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+                              <DollarSign size={14} /> Update payment status
+                            </button>
                             <div className="detail-grid">
                               <div className="detail-cell">
                                 <div className="detail-cell-lbl">Payment Status</div>
@@ -786,7 +808,7 @@ export default function AdminJobsPage() {
                               </div>
                               <div className="detail-cell"><div className="detail-cell-lbl">Subtotal</div><div className="detail-cell-val">{fmtAed(inv.subtotal)}</div></div>
                               <div className="detail-cell"><div className="detail-cell-lbl">VAT</div><div className="detail-cell-val">{fmtAed(inv.vat)}</div></div>
-                              {toNum(inv.advanceAmount) > 0 && (
+                              {inv.paymentStatus !== "paid" && toNum(inv.advanceAmount) > 0 && (
                                 <>
                                   <div className="detail-cell"><div className="detail-cell-lbl">Advance Paid</div><div className="detail-cell-val" style={{ color:"#854F0B" }}>{fmtAed(inv.advanceAmount)}</div></div>
                                   <div className="detail-cell"><div className="detail-cell-lbl">Balance Due</div><div className="detail-cell-val" style={{ color:"#791F1F" }}>{fmtAed(balance)}</div></div>
@@ -871,6 +893,15 @@ export default function AdminJobsPage() {
             </div>
           </div>
         </>
+      )}
+      {/* ══════ PAYMENT MODAL ══════════════════════════════════════ */}
+      {payingInv && (
+        <PaymentModal
+          invoice={payingInv}
+          customerName={viewJob?.customer?.name}
+          onClose={() => setPayingInv(null)}
+          onSaved={handlePaymentSaved}
+        />
       )}
     </div>
   );

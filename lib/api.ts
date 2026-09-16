@@ -107,6 +107,7 @@ export const api = {
   getInvoices:        (token: string, params = "") => apiFetch(`/invoices${params}`,          {}, token),
   getRevenueSummary:  (token: string)              => apiFetch("/invoices/revenue-summary",   {}, token),
   markInvoicePaid:    (id: string, body: object, token: string) => apiFetch(`/invoices/${id}/mark-paid`, { method: "PATCH", body: JSON.stringify(body) }, token),
+  updateInvoicePayment: (id: string, body: object, token: string) => apiFetch(`/invoices/${id}/payment`, { method: "PATCH", body: JSON.stringify(body) }, token),
   myInvoices:         (token: string)              => apiFetch("/invoices/my-invoices",       {}, token),
 
   // Service request by ID
