@@ -128,4 +128,11 @@ export const api = {
   updateService: (id: string, body: FormData, token: string) => apiFetch(`/services/${id}`, { method: "PATCH",  body }, token),
   deleteService: (id: string, token: string)                 => apiFetch(`/services/${id}`, { method: "DELETE" }, token),
   getReviews:       () => apiFetch("/reviews"),
+
+  // Fuel logs — pass "?from=YYYY-MM-DD&to=YYYY-MM-DD&technicianId=" to filter
+  getFuelLogs:    (token: string, params = "")              => apiFetch(`/fuel-logs${params}`,         {}, token),
+  getFuelSummary: (token: string, params = "")              => apiFetch(`/fuel-logs/summary${params}`, {}, token),
+  createFuelLog:  (body: object, token: string)             => apiFetch("/fuel-logs",       { method: "POST",   body: JSON.stringify(body) }, token),
+  updateFuelLog:  (id: string, body: object, token: string) => apiFetch(`/fuel-logs/${id}`, { method: "PATCH",  body: JSON.stringify(body) }, token),
+  deleteFuelLog:  (id: string, token: string)               => apiFetch(`/fuel-logs/${id}`, { method: "DELETE" }, token),
 };

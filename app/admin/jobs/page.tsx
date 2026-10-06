@@ -270,15 +270,15 @@ export default function AdminJobsPage() {
   async function handleAdd(e: { preventDefault(): void }) {
     e.preventDefault();
     if (!form.name.trim() || !form.phone.trim()) { setSaveError("Customer name and phone are required."); return; }
-    if (!form.problemDescription.trim()) { setSaveError("Problem description is required."); return; }
-    if (!form.address.trim()) { setSaveError("Address is required."); return; }
     setSaving(true); setSaveError("");
     try {
       const body: Record<string, string> = {
         name: form.name.trim(), phone: form.phone.trim(),
-        serviceType: form.serviceType, problemDescription: form.problemDescription.trim(),
-        address: form.address.trim(), source: "admin",
+        serviceType: form.serviceType, source: "admin",
       };
+      // Left out when blank: the API then falls back to the customer's saved address
+      if (form.problemDescription.trim()) body.problemDescription = form.problemDescription.trim();
+      if (form.address.trim())            body.address            = form.address.trim();
       if (form.equipmentType.trim())  body.equipmentType  = form.equipmentType.trim();
       if (form.equipmentBrand.trim()) body.equipmentBrand = form.equipmentBrand.trim();
       if (form.equipmentModel.trim()) body.equipmentModel = form.equipmentModel.trim();
@@ -585,14 +585,14 @@ export default function AdminJobsPage() {
 
                 {/* Problem */}
                 <div>
-                  <div className="field-label">Problem Description *</div>
-                  <textarea className="field-input" rows={3} placeholder="Describe the issue…" value={form.problemDescription} onChange={ff("problemDescription")} required style={{ resize:"vertical", lineHeight:1.55 }} />
+                  <div className="field-label">Problem Description</div>
+                  <textarea className="field-input" rows={3} placeholder="Describe the issue…" value={form.problemDescription} onChange={ff("problemDescription")} style={{ resize:"vertical", lineHeight:1.55 }} />
                 </div>
 
                 {/* Address */}
                 <div>
-                  <div className="field-label">Address *</div>
-                  <input className="field-input" placeholder="Villa 12, Al Khalidiyah, Abu Dhabi" value={form.address} onChange={ff("address")} required />
+                  <div className="field-label">Address</div>
+                  <input className="field-input" placeholder="Villa 12, Al Khalidiyah, Abu Dhabi" value={form.address} onChange={ff("address")} />
                 </div>
 
                 {/* Equipment */}
